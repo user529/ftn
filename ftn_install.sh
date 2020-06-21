@@ -1,5 +1,5 @@
 #!/bin/bash
-set -u
+
 #########################################
 #
 #  Configurable part.
@@ -23,7 +23,7 @@ ignore_list='docker'
 FTN_WRP=~/ftn
 FTN_LIB=/usr/local/lib
 FTN_BIN=/usr/local/bin
-FTN_REPO="https://github.com/user529/ftn.git"
+FTN_REPO="https://github.com/user529/ftn"
 
 # Clone and update git repository of ftn
 git clone --recursive "${FTN_REPO}" "${FTN_WRP}"
