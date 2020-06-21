@@ -1,0 +1,13 @@
+#!/bin/bash -eE
+
+# A wrapper for tonos-cli
+. =FTN=LIB=/ftn_functions.inc
+
+if [ -n "$1" ]; then
+    case "$1" in
+    $func_list) $1 ${@:1};;
+	"--version") version;;
+    *) echo "Command $1 not recognized. Please try to use \"help\" command.";;
+    esac
+fi
+

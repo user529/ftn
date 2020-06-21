@@ -1,0 +1,134 @@
+declare -A _help
+
+_help["overview"]="\
+ftn is a wrapper for the tonos-cli.
+Don't take it too seriously. It's just a local stuff that helps me to shrink long and boring commands into short ones.
+You can use with the following commands:
+    config - the same as \"tonos-cli config\"
+    getgonfig - the same as \"tonos-cli getconfigconfig\"
+    exec - runs the passed command using the tonos-cli
+    adnl - show current node adnl and pubkey
+    balance - show account balance
+    transactions - shows awaiting transactions on the account
+    convert - converts an amount to nanotockens
+    submit - submits tokens to an account
+    electionrun - send the stake to the elections
+    recover - recovers the unlocked tockens. It only works if elections are open.
+    electionlog - shows the last N lines from the log of the \"electionrun\" command
+    setstake - sets the stake amount used by the \"electionrun\" command
+    help - displays this page
+
+Check \"ftn help [sub-command]\" for additional help.
+
+In most cases, the logs of these sub-commands can be found in the FTN_LOG directory. 
+By default, FTN_LOG=/var/log/ftn.
+"
+
+_help["help"]="\
+I have nothing more to say here.
+"
+
+_help["balance"]="\
+Usage:
+    ftn balance [account_number]
+Description:
+    Shows account balance of the [account_number].
+    [account_number] is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
+"
+
+_help["adnl"]="\
+Usage:
+    ftn andl
+Description:
+    Shows the adnl and pubkey from the following files:
+        {keys_dir}/(hostname)-election-adnl-key
+        {keys_dir}/(hostname)-election-key
+"
+
+_help["config"]="\
+Usage:
+    ftn config [flags] [options]
+Description:
+    The same as \"tonos-cli config [flags] [options]\".
+    Use \"ftn config -h\" to display th tonos-cli help.
+"
+
+_help["getconfig"]="\
+Usage:
+    ftn getconfig <INDEX>
+Description:
+    The same as \"tonos-cli getconfig <INDEX>\".
+    INDEX is parameter index.
+    Use \"ftn getconfig -h\" to display the tonos-cli help.
+"
+
+_help["convert"]="\
+Usage:
+    ftn convert <AMOUNT>
+Description:
+    In fact, it's an analog of \"tonos-cli convert tokens <AMOUNT>\".
+    Converts the amount to nanotockens (1 -> 10^9) and truncates the leading zeroes, if any.
+"
+
+_help["electionlog"]="\
+Usage:
+    ftn electionlog [option]
+Description:
+    Shows INFO-messages from the last N lines of the \"electionrun\" log.
+    Possible values for [option] is N or 'all'. Default option N=14 (i.e. \"ftn electionlog 14\").
+    N is the option to set the number of the last lines to lookup for INFO-messages. By default, N=14.
+    'all' is the option to display all messages, instead of INFO-messages. Shows last 30 lines of the \"electionrun\" log.
+"
+
+_help["electionrun"]="\
+Usage:
+    ftn electionrun [stake]
+Description:
+    In fact, this is a wrapper for running validator_msig.sh script.
+    It takes care of the correct directory from which the validator_msig.sh script runs. Therefore it can be launched from anywhere.
+
+    stake is optional. If ommited, uses the stake amount set by \"ftn setstake [stake]\".
+    If the stake is not set it exits with the error.
+"
+
+_help["setstake"]="\
+Usage:
+    ftn setstake [stake]
+Description:
+    Sets the stake to be used by the \"electionrun\".
+    It also applies additional checks for the given stake:
+    1.  if stake > balance then 
+            stake=balance-1 #you can't send more than you have)
+    2.  if stake < min_stake then 
+            stake=0 #the amount on the balance is not enough and there is no point in sending any stake
+
+    To be done: if the stake is ommited, calculate the average stake for the current round and set it as the stake
+"
+
+_help["transactions"]="\
+Usage:
+    ftn transactions
+Description:
+    Displays awaiting transactions on the account from the FTN_KEYS_DIR/(hostname).addr file
+"
+
+_help["submit"]="\
+Usage:
+    ftn submit <ACCOUNT> <AMOUNT> [BOUNCE]
+Description:
+    Submits tokens to an account.
+    ACCOUNT is the full number \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
+    AMOUNT is amount of tokens you want to send. It auto-converts to nanotockens by \"ftn convert\"
+    BOUNCE can be true or false. true is default value.
+    The other parameters are the following:
+    abi is the file: \"FTN_DIR/config/SafeMultisigWallet.abi.json\" 
+    sign is the keyfile: \"FTN_KEYS_DIR/msig.keys.json\"
+"
+
+_help["exec"]="\
+Usage:
+    ftn exec <SUBCOMMAND>
+Description:
+    Runs the passed <subcommand> using the tonos-cli.
+    Is an analog of tonos-cli <SUBCOMMAND>.
+"
