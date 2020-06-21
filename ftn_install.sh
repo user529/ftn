@@ -57,8 +57,8 @@ TON_CFG_DIR="$TON_DIR/configs"
 EOLONGFILE"
 
 # Copy file to local lib and bin directories
-chmod 755 ${FTN_WRP}/ftn
-chmod 644 ${FTN_WRP}/*.inc
+sudo chmod 755 ${FTN_WRP}/ftn
+sudo chmod 644 ${FTN_WRP}/*.inc
 sudo cp -s ${FTN_WRP}/ftn ${FTN_BIN}
 sudo cp -s ${FTN_WRP}/*.inc ${FTN_LIB}
 
