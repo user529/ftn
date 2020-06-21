@@ -46,7 +46,7 @@ ADDR_FILE="$(hostname -s).addr"
 TON_MSIGACC=$(cat "${KEYS_DIR}/${ADDR_FILE}")
 
 # Composing a file with environment variables
-sudo bash -c "cat <<EOLONGFILE > $FTN_WRP/ftn_cfg.inc
+bash -c "cat <<EOLONGFILE > $FTN_WRP/ftn_cfg.inc
 FTN_ACCOUNT='$TON_MSIGACC'
 FTN_LOG="$LOG_DIR"
 FTN_KEYS_DIR="$KEYS_DIR"
@@ -64,4 +64,4 @@ sudo cp -s ${FTN_WRP}/*.inc ${FTN_LIB}
 
 # Create log dir
 sudo mkdir -p $LOG_DIR
-chmod 755 $LOG_DIR
+sudo chmod 755 $LOG_DIR
