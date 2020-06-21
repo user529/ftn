@@ -4,7 +4,7 @@
 #
 #  Configurable part.
 #  This is usually not required, but you can change something in this section.
-#  curl --proto '=https' --tlsv1.2 -sSf https://github.com/user529/ftn/ftn_install.sh | sh
+#
 #########################################
 
 NET_NAME="net.ton.dev"
