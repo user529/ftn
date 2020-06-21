@@ -37,9 +37,9 @@ sed -i "s/=FTN=LIB=/${replace}/" "ftn_functions.inc"
 
 # Copy file to local lib and bin directories
 sudo cp ${FTN_WRP}/ftn ${FTN_BIN}
-sudo chmod 755 "${FTN_BIN}/ftn"
-sudo cp "${FTN_WRP}/ftn_*.inc" ${FTN_LIB}
-sudo chmod 644 "${FTN_LIB}/ftn_*.inc"
+sudo chmod 755 ${FTN_BIN}/ftn
+sudo cp ${FTN_WRP}/ftn_*.inc ${FTN_LIB}
+sudo chmod 644 ${FTN_LIB}/ftn_*.inc
 
 # Auto finding directories and files
 TON_DIR=$(find / -type d -name $NET_NAME -print -quit 2>/dev/null | grep -vE $ignore_list)
