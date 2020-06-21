@@ -35,12 +35,6 @@ replace=$(echo "${FTN_LIB}" | sed -e 's/[]$.*\/[\^]/\\&/g')
 sed -i "s/=FTN=LIB=/${replace}/" "ftn"
 sed -i "s/=FTN=LIB=/${replace}/" "ftn_functions.inc"
 
-# Copy file to local lib and bin directories
-sudo cp ${FTN_WRP}/ftn ${FTN_BIN}
-sudo chmod 755 ${FTN_BIN}/ftn
-sudo cp ${FTN_WRP}/ftn_*.inc ${FTN_LIB}
-sudo chmod 644 ${FTN_LIB}/ftn_*.inc
-
 # Auto finding directories and files
 TON_DIR=$(find / -type d -name $NET_NAME -print -quit 2>/dev/null | grep -vE $ignore_list)
 if [ -z "TON_DIR" ]; then
@@ -53,7 +47,7 @@ ADDR_FILE="$(hostname -s).addr"
 TON_MSIGACC=$(cat "${KEYS_DIR}/${ADDR_FILE}")
 
 # Composing a file with environment variables
-sudo bash -c "cat <<EOLONGFILE > $FTN_LIB/ftn_cfg.inc
+sudo bash -c "cat <<EOLONGFILE > $FTN_WRP/ftn_cfg.inc
 FTN_ACCOUNT='$TON_MSIGACC'
 FTN_LOG="$LOG_DIR"
 FTN_KEYS_DIR="$KEYS_DIR"
@@ -63,4 +57,12 @@ TONOS_CLI="$TON_DIR/tonos-cli/target/release/tonos-cli"
 TON_CFG_DIR="$TON_DIR/configs"
 EOLONGFILE"
 
+# Copy file to local lib and bin directories
+chmod 755 ${FTN_BIN}/ftn
+chmod 644 ${FTN_LIB}/*.inc
+sudo cp -s ${FTN_WRP}/ftn ${FTN_BIN}
+sudo cp -s ${FTN_WRP}/*.inc ${FTN_LIB}
+
+# Create log dir
 sudo mkdir -p $LOG_DIR
+chmod 755 $LOG_DIR
