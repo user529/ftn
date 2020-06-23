@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. /etc/ftn.conf
+. ~/ftn.conf
 
 # Remove all logs
 sudo rm -rf $FTN_LOG
@@ -11,4 +11,4 @@ cd ~
 rm -rf ${FTN_WRP}
 
 # Remove conf file
-sudo rm -f /etc/ftn.conf
+sudo rm -f ~/ftn.conf
