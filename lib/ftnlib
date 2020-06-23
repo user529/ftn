@@ -1,8 +1,8 @@
 
-. =FTN=LIB=/ftn_cfg.inc
+#. /etc/ftn.conf
 shopt -s extglob
-func_list="@(convert|electionlog|electionrun|setstake|adnl|balance|transactions|submit|recover|getconfig|config|exec|get_mid_stake2|help)"
-ftn_version="0.1 (alpha)"
+func_list="@(convert|electionlog|electionrun|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|help)"
+ftn_version="0.1.1 (alpha)"
 
 function version {
     echo "ftn $ftn_version"
@@ -10,26 +10,27 @@ function version {
 
 function tonos {
     date
-    echo "ftn_function.tonos: $@"
+    echo "ftnlib.tonos: $@"
     cd "${FTN_DIR}/scripts"
     ${TONOS_CLI_DIR}/tonos-cli $@
     cd $OLD_PWD
 }
 
 function getconfig {
-    tonos $@ 2>&1 | tee $FTN_LOG/exec.log
+    tonos $@ 2>&1 | tee $FTN_LOG/$1.log
 }
 
 function config {
-    tonos $@ 2>&1 | tee $FTN_LOG/exec.log
+    tonos $@ 2>&1 | tee $FTN_LOG/$1.log
+}
+
+function runget {
+    elector_addr=$(cat $FTN_KEYS_DIR/elector-addr-base64)
+    tonos $1 $elector_addr $2 2>&1 | tee $FTN_LOG/$1.log
 }
 
 function convert {
-    #    truncate -s 0 "${FTN_LOG}/convert.log"
-    cd "${FTN_DIR}/scripts"
-    n=$(${TONOS_CLI_DIR}/tonos-cli $1 tokens $2)
-    cd $OLD_PWD
-    echo $((10#$n)) # 10#$n - used to remove leading zeros
+    tonos $1 convert $2
 }
 
 function electionlog {
@@ -64,13 +65,6 @@ function electionrun {
     tail -n 14 "${FTN_LOG}/election.log"
 }
 
-#function get_mid_stake2 {
-#    result="$($TONOS_CLI getconfig 34)"
-#    #    TOTAL_NODES=$(echo $result | grep \"total\" | awk -F, '{print $1}' | awk -F: '{print $2}')
-#    TOTAL_NODES=$(echo "$result" | perl -ne '/^\s*\"total\" : (\d+).*$/ && print $1')
-#    #echo $result | grep \"total\" 
-#    echo $TOTAL_NODES
-#}
 
 function setstake { 
     . "${FTN_DIR}/scripts/env.sh"
@@ -94,31 +88,25 @@ function setstake {
 
     #get_mid_stake
     bal=$(ftn balance | grep "balance" | awk '{print $2}')
-    #exit
-    echo "Got acc balance $bal"
-    echo "Got mid stake $MID_STAKE"
-    #    stake=$((bal-5))
+    echo "Account balance $bal"
+    #echo "Got mid stake $MID_STAKE"
 
-    if [ $# -ne 0 ]; then
-        echo "Got stake size $1"
-        stake=$1
+    if [ -z $2 ]; then
+        echo "Given the size of stake $2"
+        stake=$2
     else
-        stake=$MID_STAKE
+        stake=0
+        #stake=$MID_STAKE
     fi
-#    MAX_STAKE_SIZE=30000
-    #    if [[ $stake -gt $MAX_STAKE_SIZE ]]; then
-    #       echo "More than max_stake. stake set as the max stake"
-    #       stake=$MAX_STAKE_SIZE
-    #    fi
 
     if [[ $stake -gt $bal ]]; then
-        echo "More than balance. stake set as bal-1"
+        echo "The stake is greater than the balance. The stake is aligned to the balance-1"
         stake=$((bal-1))
     fi
-    #    stake=$((bal/2))
+
     if [[ $stake -lt 10000 ]]; then
-        echo "Less than minimal stake. Set 0 stake"
-        $stake=0
+        echo "The stake less than the minimal. Set 0 stake"
+        stake=0
     fi
     echo $stake > "${KEYS_DIR}/elections/stake"
     echo "${stake} set as stake."
@@ -130,9 +118,9 @@ function adnl {
     if [ -z "${adnlfile}" ]; then
         echo "ADNL adress not found."
     else
-            adnl=$(cat "${adnlfile}" | grep "created new key")
-            pubkey=$(cat "${keyfile}" | grep "created new key")
-            echo -e "adnl: ${adnl:16}\npubkey: ${pubkey:16}"
+        adnl=$(cat "${adnlfile}" | grep "created new key")
+        pubkey=$(cat "${keyfile}" | grep "created new key")
+        echo -e "adnl: ${adnl:16}\npubkey: ${pubkey:16}"
     fi    
 }
 
@@ -140,38 +128,34 @@ function adnl {
 function balance { 
     truncate -s 0 "${FTN_LOG}/balance.log"
     if [ -z "${2}" ]; then
-      Acc="${FTN_ACCOUNT}"
+        Acc="${FTN_ACCOUNT}"
     else
-      Acc="${2}"
+        Acc="${2}"
     fi
-    # "${TONOS_CLI}" account "${Acc}" > "${FTN_LOG}/balance.log" 2>&1 
-    #    tonos account "${Acc}" 2>&1 | tee ${FTN_LOG}/balance.log
-    tonos account "${Acc}" > ${FTN_LOG}/balance.log
+ 
+    tonos account "${Acc}" > ${FTN_LOG}/$1.log
     acc="$(cat "${FTN_LOG}/balance.log" | grep "address:" | awk -F':' '{printf ("address %s:%s", $2, $3)}')"
     bal="$(cat "${FTN_LOG}/balance.log" | grep "balance:" | awk -F':' '{printf ("balance %d", $2/1000000000)}')"
     echo -e "$acc\n$bal"
 }
 
+
 function transactions { 
-    #    truncate -s 0 $FTN_LOG/transactions.log
-    tonos run "${FTN_ACCOUNT}" getTransactions {} --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" 2>&1 | tee $FTN_LOG/transactions.log
+    tonos run "${FTN_ACCOUNT}" getTransactions {} --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" 2>&1 | tee $FTN_LOG/$1.log
 }
 
 function submit { 
-    #    truncate -s 0 "${FTN_LOG}/submit.log"
-    NANOTKNS=$(ftn convert $3)
-    echo $NANOTKNS
+    NANO=$(ftn convert $3)
+    echo $NANO
     if [ "${4}" = "false" ]; then
       isBounce=false
     else
       isBounce=true
     fi
-    #set -x
     #    "${TONOS_CLI}" call "${FT_ACCOUNT}" submitTransaction "{\"dest\":\"${1}\",\"value\":${nt},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_SEEDPHRASE}" > "${FTN_LOG}/submit.log" 2>&1 
-    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${2}\",\"value\":${NANOTKNS},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/submit.log 
-    #set +x
-    #    cat "${FTN_LOG}/submit.log"
+    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${2}\",\"value\":${NANO},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
 }
+
 
 function recover { 
     cd "${FTN_DIR}/scripts"
@@ -222,14 +206,14 @@ function recover {
     fi
 }
 
+
 function exec {  
-    tonos "${@:2}" 2>&1 | tee $FTN_LOG/exec.log
-    #    "${TONOS_CLI} $@" >> $FTN_LOG/exec.log
+    tonos "${@:2}" 2>&1 | tee $FTN_LOG/$1.log
 }
 
 
 function help {
-    . =FTN=LIB=/ftn_help.inc
+    . $FTN_WRP/lib/ftnlibhelp
     if [ -n "$2" ]; then
         section=$2
     else

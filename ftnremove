@@ -1,0 +1,14 @@
+#!/bin/bash
+
+. /etc/ftn.conf
+
+# Remove all logs
+sudo rm -rf $FTN_LOG
+
+# Remove branch from user's home dir and the ftn directory
+cd ${FTN_WRP} && git branch -D "master"
+cd ~
+rm -rf ${FTN_WRP}
+
+# Remove conf file
+sudo rm -f /etc/ftn.conf

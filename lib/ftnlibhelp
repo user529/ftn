@@ -5,7 +5,8 @@ ftn is a wrapper for the tonos-cli.
 Don't take it too seriously. It's just a local stuff that helps me to shrink long and boring commands into short ones.
 You can use with the following commands:
     config - the same as \"tonos-cli config\"
-    getgonfig - the same as \"tonos-cli getconfigconfig\"
+    getgonfig - the same as \"tonos-cli getconfig\"
+    runget - runs method on the elector contract address
     exec - runs the passed command using the tonos-cli
     adnl - show current node adnl and pubkey
     balance - show account balance
@@ -60,6 +61,16 @@ Description:
     The same as \"tonos-cli getconfig <INDEX>\".
     INDEX is parameter index.
     Use \"ftn getconfig -h\" to display the tonos-cli help.
+"
+
+_help["runget"]="\
+Usage:
+    ftn runget <METHOD> [PARAMS]
+Description:
+    The same as \"tonos-cli runget <MSIG ADDR> <METHOD> [PARAMS]\".
+    MSIG ADDR - Elector contract address (-1:3333...333).
+    METHOD - Name of the calling method.
+    PARAMS... Arguments for the contract method
 "
 
 _help["convert"]="\
@@ -124,6 +135,14 @@ Description:
     abi is the file: \"FTN_DIR/config/SafeMultisigWallet.abi.json\" 
     sign is the keyfile: \"FTN_KEYS_DIR/msig.keys.json\"
 "
+
+_help["recover"]="\
+Usage:
+    ftn recover
+Description:
+    Sends a request to check if the unlocked amount is available. And fetches if any.
+"
+
 
 _help["exec"]="\
 Usage:

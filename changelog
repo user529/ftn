@@ -1,0 +1,12 @@
+ftn 0.1.1 (alpha);
+    * Changed the directory structure
+    * Changed the naming of external libraries
+    * Using /etc/ftn.conf for various configuration stuff
+    * Autoconfig script replaced the installation script
+    * Added a removing script (ftnremove)
+    * Added a changelog file
+    * Redesign of a few internal functions
+    * New 'runget' command
+
+ftn 0.1 (alpha);
+    * Initial release + bugfixing
