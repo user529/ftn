@@ -25,7 +25,7 @@ function config {
 }
 
 function runget {
-    elector_addr=$(cat $FTN_KEYS_DIR/elector-addr-base64)
+    elector_addr=$(cat $FTN_KEYS_DIR/elestions/elector-addr-base64)
     tonos $1 $elector_addr $2 2>&1 | tee $FTN_LOG/$1.log
 }
 
