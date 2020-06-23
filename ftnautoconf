@@ -31,25 +31,25 @@ fi
 
 FTN_WRP=$(pwd -P)
 export PATH="$FTN_WRP:$PATH"
-echo "export PATH=$PATH" >> ~/.profile
+echo "export PATH=\"$FTN_WRP:\$PATH\"" >> ~/.profile
 
 . $TON_DIR/scripts/env.sh
 #ADDR_FILE="$(hostname -s).addr"
 #TON_MSIGACC=$(cat "${KEYS_DIR}/${ADDR_FILE}")
 
 # Composing ftn config file 
-sudo bash -c "cat <<EOLONGFILE > /etc/ftn.conf
+#sudo bash -c "cat <<EOLONGFILE > /etc/ftn.conf
+sudo cat <<EOLONGFILE > ~/ftn.conf
 FTN_WRP="$FTN_WRP"
-FTN_HOST='$(hostname -s)'
-echo $FTN_HOST
-FTN_ACCOUNT='$(cat "$KEYS_DIR/$FTN_HOST.addr")'
+FTN_HOST="\$(hostname -s)"
+FTN_ACCOUNT="\$(cat $KEYS_DIR/\$FTN_HOST.addr)"
 FTN_LOG="$LOG_DIR"
 FTN_KEYS_DIR="$KEYS_DIR"
 FTN_DIR="$TON_DIR"
 TONOS_CLI_DIR="$TON_DIR/tonos-cli/target/release"
 TONOS_CLI="$TON_DIR/tonos-cli/target/release/tonos-cli"
 TON_CFG_DIR="$TON_DIR/configs"
-EOLONGFILE"
+EOLONGFILE
 
 # Handing out prmissions
 chmod 755 ${FTN_WRP}/ftn

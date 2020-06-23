@@ -1,8 +1,8 @@
 #!/bin/bash -eE
 
 # A wrapper for tonos-cli
-. /etc/ftn.conf
-. $FNT_WRP/ftnlib
+. ~/ftn.conf
+. $FTN_WRP/lib/ftnlib
 
 if [ -n "$1" ]; then
     case "$1" in
