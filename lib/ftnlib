@@ -1,12 +1,15 @@
 
 #. /etc/ftn.conf
 shopt -s extglob
-func_list="@(convert|electionlog|electionrun|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|help)"
+shopt -s nocasematch
+func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|help)"
 ftn_version="0.1.1 (alpha)"
+
 
 function version {
     echo "ftn $ftn_version"
 }
+
 
 function tonos {
     date
@@ -16,22 +19,27 @@ function tonos {
     cd $OLD_PWD
 }
 
+
 function getconfig {
     tonos $@ 2>&1 | tee $FTN_LOG/$1.log
 }
 
+
 function config {
     tonos $@ 2>&1 | tee $FTN_LOG/$1.log
 }
+
 
 function runget {
     elector_addr=$(cat $FTN_KEYS_DIR/elections/elector-addr-base64)
     tonos $1 $elector_addr $2 2>&1 | tee $FTN_LOG/$1.log
 }
 
+
 function convert {
     tonos $1 tokens $2
 }
+
 
 function electionlog {
     if [ -z "$2" ]; then
@@ -39,13 +47,14 @@ function electionlog {
     else
         if [ "$2" == "full" ]; then
             tail -n 30 "${FTN_LOG}/election.log"
-            exit
+            exit 0
         else
             lines=$2
         fi
     fi
     tail -n $lines "${FTN_LOG}/election.log" | grep "INFO:"
 }
+
 
 function electionrun {
     if [ -z $2 ]; then
@@ -66,8 +75,28 @@ function electionrun {
 }
 
 
+function extrastake {
+    if [ -z "$2" ]; then
+        echo "Amount of extrastake is not given."
+        exit 0
+    fi
+    elector_addr=$(cat $FTN_KEYS_DIR/elections/elector-addr-base64)
+    EXT_STAKE=$2
+    bounce="true"
+    payload="$(base64 --wrap=0 \"$FTN_KEYS_DIR/elections/validator-query.boc\")"
+
+    # input parameters for 'submit' function
+    # $1 = submit    # Must be equal to the function name
+    # $2 - Target account
+    # $3 - Tokens    # Please note this ia not NANOAMOUNT!
+    # $4 - Bounce    # Can be False or True. 'True' is default value. Non case sensitive.
+    # $5 - Payload   # Payload block
+    submit "submit" $elector_addr $EXT_STAKE "True" $payload
+}
+
+
 function setstake { 
-    . "${FTN_DIR}/scripts/env.sh"
+    #. "${FTN_DIR}/scripts/env.sh"
 
 #    function get_mid_stake {
 #        ELECTOR_ADDR="$(cat "$KEYS_DIR/elections/elector-addr-base64")"
@@ -91,11 +120,12 @@ function setstake {
     echo "Account balance $bal"
     #echo "Got mid stake $MID_STAKE"
 
-    if [ -z $2 ]; then
+    if [ -n "$2" ]; then
         echo "Given the size of stake $2"
         stake=$2
     else
         stake=0
+        echo "The stake size is not given. Set stake=$stake"
         #stake=$MID_STAKE
     fi
 
@@ -110,6 +140,7 @@ function setstake {
     fi
     echo $stake > "${KEYS_DIR}/elections/stake"
     echo "${stake} set as stake."
+
 
 }
 function adnl { 
@@ -132,10 +163,10 @@ function balance {
     else
         Acc="${2}"
     fi
- 
+
     tonos account "${Acc}" > ${FTN_LOG}/$1.log
-    acc="$(cat "${FTN_LOG}/balance.log" | grep "address:" | awk -F':' '{printf ("address %s:%s", $2, $3)}')"
-    bal="$(cat "${FTN_LOG}/balance.log" | grep "balance:" | awk -F':' '{printf ("balance %d", $2/1000000000)}')"
+    acc="$(cat "${FTN_LOG}/$1.log" | grep "address:" | awk -F':' '{printf ("address %s:%s", $2, $3)}')"
+    bal="$(cat "${FTN_LOG}/$1.log" | grep "balance:" | awk -F':' '{printf ("balance %d", $2/1000000000)}')"
     echo -e "$acc\n$bal"
 }
 
@@ -144,7 +175,13 @@ function transactions {
     tonos run "${FTN_ACCOUNT}" getTransactions {} --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" 2>&1 | tee $FTN_LOG/$1.log
 }
 
+
 function submit { 
+    # $1 = submit    # This parameter is always equal to the function name
+    # $2 - Target account
+    # $3 - Amount    # Please note this ia not NANOAMOUNT!
+    # $4 - Bounce    # Can be False or True. 'True' is default value. Non case sensitive.
+    # $5 - Payload   # Payload block
     NANO=$(ftn convert $3)
     echo $NANO
     if [ "${4}" = "false" ]; then
@@ -152,15 +189,21 @@ function submit {
     else
       isBounce=true
     fi
+
     #    "${TONOS_CLI}" call "${FT_ACCOUNT}" submitTransaction "{\"dest\":\"${1}\",\"value\":${nt},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_SEEDPHRASE}" > "${FTN_LOG}/submit.log" 2>&1 
-    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${2}\",\"value\":${NANO},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
+    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${2}\",\"value\":${NANO},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
 }
 
 
 function recover { 
     cd "${FTN_DIR}/scripts"
     . "${FTN_DIR}/scripts/env.sh"
-    SEND_ATTEMPTS=1
+
+    if [ -z "$2" ]; then
+        SEND_ATTEMPTS=1
+    else
+        SEND_ATTEMPTS=$2
+    fi
     #set -x
 
     elector_addr=$(cat "${FTN_KEYS_DIR}/elections/elector-addr-base64")

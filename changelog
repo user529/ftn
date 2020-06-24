@@ -1,3 +1,10 @@
+ftn 0.1.2 (alpha);
+    * Introduced new subcommand: 'extrastake'
+    * Introduced 'payload' parameter for 'submit' subcommand
+    * Introduced 'attempts' parameter for 'recover' subcommand
+    * Fixed issue with 'setstake' subcommand
+    * Updated 'help' output
+
 ftn 0.1.1 (alpha);
     * Changed the directory structure
     * Changed the naming of external libraries

@@ -88,7 +88,7 @@ Description:
     Shows INFO-messages from the last N lines of the \"electionrun\" log.
     Possible values for [option] is N or 'all'. Default option N=14 (i.e. \"ftn electionlog 14\").
     N is the option to set the number of the last lines to lookup for INFO-messages. By default, N=14.
-    'all' is the option to display all messages, instead of INFO-messages. Shows last 30 lines of the \"electionrun\" log.
+    'all' is the option to display all messages, instead of INFO-messages. And it shows last 30 lines of the \"electionrun\" log.
 "
 
 _help["electionrun"]="\
@@ -96,10 +96,20 @@ Usage:
     ftn electionrun [stake]
 Description:
     In fact, this is a wrapper for running validator_msig.sh script.
-    It takes care of the correct directory from which the validator_msig.sh script runs. Therefore it can be launched from anywhere.
+    It takes care of the correct directory from which the validator_msig.sh script runs. 
+    Therefore it can be launched from anywhere.
 
-    stake is optional. If ommited, uses the stake amount set by \"ftn setstake [stake]\".
+    stake is optional parameter. If ommited, uses the stake amount set by \"ftn setstake [stake]\".
     If the stake is not set it exits with the error.
+"
+
+_help["extrastake"]="\
+Usage:
+    ftn extrastake <stake>
+Description:
+    Allows to sends an additional stake during the active elections.
+    It reuses Elector address and Payload parameters used by 'electionrun' subcommand or the standard script.
+    In contrast to 'electionrun' the size of stake is mandatory parameter.
 "
 
 _help["setstake"]="\
@@ -125,22 +135,27 @@ Description:
 
 _help["submit"]="\
 Usage:
-    ftn submit <ACCOUNT> <AMOUNT> [BOUNCE]
+    ftn submit <ACCOUNT> <AMOUNT> [BOUNCE] [PAYLOAD]
 Description:
     Submits tokens to an account.
-    ACCOUNT is the full number \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
-    AMOUNT is amount of tokens you want to send. It auto-converts to nanotockens by \"ftn convert\"
-    BOUNCE can be true or false. true is default value.
-    The other parameters are the following:
+    ACCOUNT number of target account. This is mandatory paramter. 
+            Must be full number \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
+    AMOUNT is number of tokens you want to send. This is mandatory paramter. 
+            Please not it must be a number of tokens but not nanotokens. 
+            Number of tokens will be converted to nanotockens by \"ftn convert\" automatically
+    BOUNCE can be true or false. 'true' is default value. Not case sensitive.
+    PAYLOAD is payload block. Empty by default.
+    There are a few not configurable parameters:
     abi is the file: \"FTN_DIR/config/SafeMultisigWallet.abi.json\" 
     sign is the keyfile: \"FTN_KEYS_DIR/msig.keys.json\"
 "
 
 _help["recover"]="\
 Usage:
-    ftn recover
+    ftn recover [attepmts]
 Description:
     Sends a request to check if the unlocked amount is available. And fetches if any.
+    ATTEMPTS set the number of tries to fetch the amount. By defualt ATTEMPTS=1.
 "
 
 
