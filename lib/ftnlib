@@ -30,7 +30,7 @@ function runget {
 }
 
 function convert {
-    tonos $1 convert $2
+    tonos $1 tokens $2
 }
 
 function electionlog {
