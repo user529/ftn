@@ -1,3 +1,6 @@
+ftn 0.1.2-2 (alpha);
+    * fixed path to keys for 'setstake' and 'electionrun' subcommands
+
 ftn 0.1.2-1 (alpha);
     * bugfixing
 

@@ -58,7 +58,7 @@ function electionlog {
 
 function electionrun {
     if [ -z $2 ]; then
-        STAKE=$(cat "${KEYS_DIR}/elections/stake" 2>/dev/null || STAKE='')
+        STAKE=$(cat "${FTN_KEYS_DIR}/elections/stake" 2>/dev/null || STAKE='')
     else
         STAKE=$2
     fi
@@ -137,7 +137,7 @@ function setstake {
         echo "The stake less than the minimal. Set 0 stake"
         stake=0
     fi
-    echo $stake > "${KEYS_DIR}/elections/stake"
+    echo $stake > "${FTN_KEYS_DIR}/elections/stake"
     echo "${stake} set as stake."
 
 
