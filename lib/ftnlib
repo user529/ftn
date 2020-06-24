@@ -3,7 +3,7 @@
 shopt -s extglob
 shopt -s nocasematch
 func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|help)"
-ftn_version="0.1.1 (alpha)"
+ftn_version="0.1.2-1 (alpha)"
 
 
 function version {
@@ -82,7 +82,6 @@ function extrastake {
     fi
     elector_addr=$(cat $FTN_KEYS_DIR/elections/elector-addr-base64)
     EXT_STAKE=$2
-    bounce="true"
     payload="$(base64 --wrap=0 \"$FTN_KEYS_DIR/elections/validator-query.boc\")"
 
     # input parameters for 'submit' function
@@ -96,7 +95,7 @@ function extrastake {
 
 
 function setstake { 
-    #. "${FTN_DIR}/scripts/env.sh"
+    . "${FTN_DIR}/scripts/env.sh"
 
 #    function get_mid_stake {
 #        ELECTOR_ADDR="$(cat "$KEYS_DIR/elections/elector-addr-base64")"

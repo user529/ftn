@@ -1,3 +1,6 @@
+ftn 0.1.2-1 (alpha);
+    * bugfixing
+
 ftn 0.1.2 (alpha);
     * Introduced new subcommand: 'extrastake'
     * Introduced 'payload' parameter for 'submit' subcommand
