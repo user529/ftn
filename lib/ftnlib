@@ -2,8 +2,8 @@
 #. /etc/ftn.conf
 shopt -s extglob
 shopt -s nocasematch
-func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|help)"
-ftn_version="0.1.2-1 (alpha)"
+func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|timediff|help)"
+ftn_version="0.1.2-2 (alpha)"
 
 
 function version {
@@ -139,9 +139,9 @@ function setstake {
     fi
     echo $stake > "${FTN_KEYS_DIR}/elections/stake"
     echo "${stake} set as stake."
-
-
 }
+
+
 function adnl { 
     adnlfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-adnl-key"
     keyfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-key"
@@ -156,7 +156,7 @@ function adnl {
 
 
 function balance { 
-    truncate -s 0 "${FTN_LOG}/balance.log"
+    #truncate -s 0 "${FTN_LOG}/$1.log"
     if [ -z "${2}" ]; then
         Acc="${FTN_ACCOUNT}"
     else
@@ -251,6 +251,12 @@ function recover {
 
 function exec {  
     tonos "${@:2}" 2>&1 | tee $FTN_LOG/$1.log
+}
+
+
+function timediff {  
+    cd "${FTN_DIR}/scripts"
+    . ./check_node_sync_status.sh | grep "TIME_DIFF" | awk '{print $4}' 2>&1
 }
 
 

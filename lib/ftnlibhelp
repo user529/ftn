@@ -17,6 +17,7 @@ You can use with the following commands:
     recover - recovers the unlocked tockens. It only works if elections are open.
     electionlog - shows the last N lines from the log of the \"electionrun\" command
     setstake - sets the stake amount used by the \"electionrun\" command
+    timediff - shows how far your node is lagging behind the network
     help - displays this page
 
 Check \"ftn help [sub-command]\" for additional help.
@@ -155,7 +156,14 @@ Usage:
     ftn recover [attepmts]
 Description:
     Sends a request to check if the unlocked amount is available. And fetches if any.
-    ATTEMPTS set the number of tries to fetch the amount. By defualt ATTEMPTS=1.
+    ATTEMPTS set the number of tries to fetch the amount. By default ATTEMPTS=1.
+"
+
+_help["timediff"]="\
+Usage:
+    ftn timediff
+Description:
+    Runs the check_node_sync_status.sh script and returns the number of seconds between the current time and the time of the last known masterblock.
 "
 
 
