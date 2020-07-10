@@ -193,7 +193,7 @@ function submit {
     fi
 
     #    "${TONOS_CLI}" call "${FT_ACCOUNT}" submitTransaction "{\"dest\":\"${1}\",\"value\":${nt},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_SEEDPHRASE}" > "${FTN_LOG}/submit.log" 2>&1 
-    tonos call "${FTN_ACCOUNT}" submitTransaction "'{\"dest\":\"${2}\",\"value\":\"${NANO}\",\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}'" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
+    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${2}\",\"value\":\"${NANO}\",\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
 }
 
 
