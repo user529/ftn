@@ -3,7 +3,7 @@
 shopt -s extglob
 shopt -s nocasematch
 func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|timediff|help)"
-ftn_version="0.1.2-2 (alpha)"
+ftn_version="0.1.2-3 (alpha)"
 
 
 function version {
@@ -37,7 +37,9 @@ function runget {
 
 
 function convert {
-    tonos $1 tokens $2
+    cd "${FTN_DIR}/scripts"
+    ${TONOS_CLI_DIR}/tonos-cli $1 tokens $2 | tail -1
+    cd $OLD_PWD
 }
 
 
@@ -82,7 +84,7 @@ function extrastake {
     fi
     elector_addr=$(cat $FTN_KEYS_DIR/elections/elector-addr-base64)
     EXT_STAKE=$2
-    payload="$(base64 --wrap=0 \"$FTN_KEYS_DIR/elections/validator-query.boc\")"
+    payload="$(base64 --wrap=0 $FTN_KEYS_DIR/elections/validator-query.boc)"
 
     # input parameters for 'submit' function
     # $1 = submit    # Must be equal to the function name
@@ -144,14 +146,15 @@ function setstake {
 
 function adnl { 
     adnlfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-adnl-key"
-    keyfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-key"
+    #keyfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-key"
     if [ -z "${adnlfile}" ]; then
         echo "ADNL adress not found."
     else
         adnl=$(cat "${adnlfile}" | grep "created new key")
-        pubkey=$(cat "${keyfile}" | grep "created new key")
-        echo -e "adnl: ${adnl:16}\npubkey: ${pubkey:16}"
-    fi    
+        #pubkey=$(cat "${keyfile}" | grep "created new key")
+        #echo -e "adnl: ${adnl:16}\npubkey: ${pubkey:16}"
+        echo -e "adnl: ${adnl:16}"
+    fi:
 }
 
 
@@ -190,7 +193,7 @@ function submit {
     fi
 
     #    "${TONOS_CLI}" call "${FT_ACCOUNT}" submitTransaction "{\"dest\":\"${1}\",\"value\":${nt},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_SEEDPHRASE}" > "${FTN_LOG}/submit.log" 2>&1 
-    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${2}\",\"value\":${NANO},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
+    tonos call "${FTN_ACCOUNT}" submitTransaction "'{\"dest\":\"${2}\",\"value\":${NANO},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}'" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
 }
 
 

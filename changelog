@@ -1,3 +1,8 @@
+ftn 0.1.2-3 (alpha);
+    * fixed a few bugs in 'extrastake' and 'submit' subcommands
+    * improved output for 'convert' subcommand
+    * displaying the pubkey has been removed from 'adnl' subcommand
+
 ftn 0.1.2-2 (alpha);
     * fixed path to keys for 'setstake' and 'electionrun' subcommands
     * Introduced 'timediff' subcommand
