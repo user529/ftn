@@ -154,7 +154,7 @@ function adnl {
         #pubkey=$(cat "${keyfile}" | grep "created new key")
         #echo -e "adnl: ${adnl:16}\npubkey: ${pubkey:16}"
         echo -e "adnl: ${adnl:16}"
-    fi:
+    fi
 }
 
 
