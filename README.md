@@ -16,11 +16,15 @@ or you could just type
 ```
 ftn balance
 ```
-of course you can find out the balance of any other account
+Of course you can find out the balance of any other account
 ```
 ftn balance -1:3333333333333333333333333333333333333333333333333333333333333333
 ```
-
+  
+And you can run it anywhere! You don't have to check every time whether you run tonos-cli from the proper directory.  
+ftn always uses "node path"/scripts directory to run anything. And it's for sure the correct directory was used.  
+  
+  
 In addition, participating in the elections is more flexible with the ftn wrapper.  
 You need to put in your cron running of "validator_msig.sh <STAKE>".
 And if you want to change the stake size, than you have to edit your cron job.  
