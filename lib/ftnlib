@@ -3,7 +3,7 @@
 shopt -s extglob
 shopt -s nocasematch
 func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|timediff|help)"
-ftn_version="0.1.2-5 (alpha)"
+ftn_version="0.1.2-6 (alpha)"
 
 
 function version {
@@ -72,6 +72,7 @@ function electionrun {
     if [ "$FTN_AUTO_BACKUP_KEYS" = "Y" ]; then
         #Backup old keys before sending a new stake
         gzip -rc "${FTN_KEYS_DIR}" > "$FTN_BACKUP_DIR/elections.$(date +%Y.%m.%d_%H-%M).gz"
+        gzip -rc "${FTN_DB_DIR}/db/keyring/" > "$FTN_BACKUP_DIR/keyring.$(date +%Y.%m.%d_%H-%M).gz"
     fi
 
     #truncate -s 0 "${FTN_LOG}/election.log"

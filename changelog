@@ -1,3 +1,6 @@
+ftn 0.1.2-6 (alpha);
+    * Now FTN_AUTO_BACKUP_KEYS parameter makes backup for keys-dir and db/keyring directories. Please don't forget to rerun autoconf or specify manualy FTN_DB_DIR in ftn.conf 
+
 ftn 0.1.2-5 (alpha);
     * New posibility to backup keys dir before sending a stake to the elections with 'electionrun' subcommand. 
       If FTN_AUTO_BACKUP_KEYS="Y", then your KEYS_DIR will be gzipped and stored into FTN_BACKUP_DIR. This is useful due to the fact that each submission of new stake overrides the old election keys.
