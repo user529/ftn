@@ -169,7 +169,7 @@ function balance {
     #truncate -s 0 "${FTN_LOG}/$1.log"
     if [ -z "${2}" ]; then
         Acc="${FTN_ACCOUNT}"
-    elif [ test -r "$FTN_KEYS_DIR/${2}.addr" ]; then
+    elif [ -r "$FTN_KEYS_DIR/${2}.addr" ]; then
         Acc=$(cat $FTN_KEYS_DIR/${2}.addr)
     else
         Acc="${2}"
