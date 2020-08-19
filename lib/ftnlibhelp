@@ -10,6 +10,7 @@ You can use with the following commands:
     exec - runs the passed command using the tonos-cli
     adnl - show current node adnl and pubkey
     balance - show account balance
+    accounts - list of account synomyms
     transactions - shows awaiting transactions on the account
     convert - converts an amount to nanotockens
     submit - submits tokens to an account
@@ -32,10 +33,17 @@ I have nothing more to say here.
 
 _help["balance"]="\
 Usage:
-    ftn balance [account_number]
+    ftn balance [account_number or account synonym]
 Description:
     Shows account balance of the [account_number].
     [account_number] is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
+    [account synonym] is optional. The name of account synonym FTN_KEYS_DIR/(synonym_name).addr
+"
+_help["accounts"]="\
+Usage:
+    ftn accounts
+Description:
+    Displays a list of possible account synonyms. 
 "
 
 _help["adnl"]="\

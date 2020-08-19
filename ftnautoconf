@@ -61,3 +61,6 @@ chmod 644 ${FTN_WRP}/lib/ftnlib*
 # Create log dir
 sudo mkdir -p $LOG_DIR
 sudo chmod 755 $LOG_DIR
+user=$(id -un)
+group=$(id -gn)
+sudo chown $user:$group $LOG_DIR

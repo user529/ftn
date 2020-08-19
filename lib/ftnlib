@@ -2,8 +2,8 @@
 #. /etc/ftn.conf
 shopt -s extglob
 shopt -s nocasematch
-func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|transactions|submit|recover|getconfig|config|runget|exec|timediff|help)"
-ftn_version="0.1.2-6 (alpha)"
+func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|accounts|transactions|submit|recover|getconfig|config|runget|exec|timediff|help)"
+ftn_version="0.1.2-7 (alpha)"
 
 
 function version {
@@ -67,6 +67,7 @@ function electionrun {
 
     if [ -z "$STAKE" ]; then
         echo "<STAKE> is not set. Please use \"ftn setstake\" or \"ftn electionrun <STAKE>\""
+        exit 0
     fi
 
     if [ "$FTN_AUTO_BACKUP_KEYS" = "Y" ]; then
@@ -168,6 +169,8 @@ function balance {
     #truncate -s 0 "${FTN_LOG}/$1.log"
     if [ -z "${2}" ]; then
         Acc="${FTN_ACCOUNT}"
+    elif [ test -r "$FTN_KEYS_DIR/${2}.addr" ]; then
+        Acc=$(cat $FTN_KEYS_DIR/${2}.addr)
     else
         Acc="${2}"
     fi
@@ -258,7 +261,7 @@ function recover {
 }
 
 
-function exec {  
+function exec {
     tonos "${@:2}" 2>&1 | tee $FTN_LOG/$1.log
 }
 
@@ -278,4 +281,11 @@ function help {
     fi
 
     echo "${_help[$section]}"
+}
+
+
+function accounts {
+    cd $FTN_KEYS_DIR
+    echo $(ls *.addr | cut -d. -f1 )
+    cd $OLDPWD
 }

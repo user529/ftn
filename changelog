@@ -1,3 +1,9 @@
+ftn 0.1.2-7 (alpha);
+    * Fixed assigning log directory owner in autoconf
+    * Fixed stopping the execution of the 'electionrun' command in case of an incorrect stake
+    * Introduced the 'accounts' subcommand to display possible account synonyms
+    * Extended the 'balance' subcommand to use synonyms as an additional parameter
+
 ftn 0.1.2-6 (alpha);
     * Now FTN_AUTO_BACKUP_KEYS parameter makes backup for keys-dir and db/keyring directories. Please don't forget to rerun autoconf or specify manualy FTN_DB_DIR in ftn.conf 
 
