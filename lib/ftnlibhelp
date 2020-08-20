@@ -12,6 +12,7 @@ You can use with the following commands:
     balance - show account balance
     accounts - list of account synomyms
     transactions - shows awaiting transactions on the account
+    confirm - allows to confirm awaiting transactions with a key
     convert - converts an amount to nanotockens
     submit - submits tokens to an account
     electionrun - send the stake to the elections
@@ -141,6 +142,19 @@ Usage:
 Description:
     Displays awaiting transactions on the account from the FTN_KEYS_DIR/(hostname).addr file
 "
+
+_help["confirm"]="\
+Usage:
+    ftn confirm <KEY> [TransactionID]
+Description:
+    Confirm transactions awaiting confirmations. 
+    KEY is mandatory parameter. This is a file name like name.keys.json. 
+            Please maky sure the key is located in FTN_KEYS_DIR.
+            Pay attention that msig.keys.json must not be used!
+    TransactionID is ID of awaiting transaction.
+            If omited, all awaiting transactions will be confirmed one by one.
+"
+
 
 _help["submit"]="\
 Usage:

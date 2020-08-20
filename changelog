@@ -1,3 +1,6 @@
+ftn 0.1.2-8 (alpha);
+    * Introduced the 'confirm' subcommand.
+
 ftn 0.1.2-7 (alpha);
     * Fixed assigning log directory owner in autoconf
     * Fixed stopping the execution of the 'electionrun' command in case of an incorrect stake
