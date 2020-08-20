@@ -201,7 +201,7 @@ function confirm {
     # $1 = confirm    # This parameter is always equal to the function name
     # $2 - Key name (i.e. custodian1.key.json. Please make sure the key is located in FTN_KEYS_DIR)
     # $3 - Transactions ID
-    if [ -z "${3}"]; then
+    if [ -z "${3}" ]; then
         for trx in $(transactions | grep \"id\": | tr -d '",' | awk '{print $2}'); do
             tonos call "${FTN_ACCOUNT}" confirmTransaction "{\"transactionId\":\"${trx}\"}" --abi ${TON_CFG_DIR}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR}/${2} 2>&1 | tee ${FTN_LOG}/$1.log 
         done
