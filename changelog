@@ -1,3 +1,8 @@
+ftn 0.1.2-9 (alpha);
+    * Unified use of account synonyms in the balance and the submit subcommands
+    * Added a new parameter TONOS_CFG_FILE in ftn.conf. You can use it to specify the path to tonos-cli.conf.json file.
+    * Help discriptions updated
+
 ftn 0.1.2-8 (alpha);
     * Introduced the 'confirm' subcommand.
 

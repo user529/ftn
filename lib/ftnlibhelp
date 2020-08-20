@@ -34,17 +34,18 @@ I have nothing more to say here.
 
 _help["balance"]="\
 Usage:
-    ftn balance [account_number or account synonym]
+    ftn balance [ACCOUNT or SYNONYM]
 Description:
     Shows account balance of the [account_number].
-    [account_number] is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
-    [account synonym] is optional. The name of account synonym FTN_KEYS_DIR/(synonym_name).addr
+    ACCOUNT is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
+    SYNONYM is optional. The list of possible synonyms can be displayed by the accounts subcommand.
 "
 _help["accounts"]="\
 Usage:
     ftn accounts
 Description:
     Displays a list of possible account synonyms. 
+    Each name of account synonym is FTN_KEYS_DIR/(synonym_name).addr file
 "
 
 _help["adnl"]="\
@@ -103,19 +104,19 @@ Description:
 
 _help["electionrun"]="\
 Usage:
-    ftn electionrun [stake]
+    ftn electionrun [STAKE]
 Description:
     In fact, this is a wrapper for running validator_msig.sh script.
     It takes care of the correct directory from which the validator_msig.sh script runs. 
     Therefore it can be launched from anywhere.
 
-    stake is optional parameter. If ommited, uses the stake amount set by \"ftn setstake [stake]\".
+    STAKE is optional parameter. If ommited, uses the stake amount set by \"ftn setstake [stake]\".
     If the stake is not set it exits with the error.
 "
 
 _help["extrastake"]="\
 Usage:
-    ftn extrastake <stake>
+    ftn extrastake <STAKE>
 Description:
     Allows to sends an additional stake during the active elections.
     It reuses Elector address and Payload parameters used by 'electionrun' subcommand or the standard script.
@@ -124,7 +125,7 @@ Description:
 
 _help["setstake"]="\
 Usage:
-    ftn setstake [stake]
+    ftn setstake [STAKE]
 Description:
     Sets the stake to be used by the \"electionrun\".
     It also applies additional checks for the given stake:
@@ -158,11 +159,12 @@ Description:
 
 _help["submit"]="\
 Usage:
-    ftn submit <ACCOUNT> <AMOUNT> [BOUNCE] [PAYLOAD]
+    ftn submit <ACCOUNT or SYNONYM> <AMOUNT> [BOUNCE] [PAYLOAD]
 Description:
     Submits tokens to an account.
     ACCOUNT number of target account. This is mandatory paramter. 
             Must be full number \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
+    SYNONYM the name of account synonym. Please see the accounts subcommand for more info.
     AMOUNT is number of tokens you want to send. This is mandatory paramter. 
             Please not it must be a number of tokens but not nanotokens. 
             Number of tokens will be converted to nanotockens by \"ftn convert\" automatically

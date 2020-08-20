@@ -51,6 +51,7 @@ FTN_AUTO_BACKUP_KEYS="Y"
 FTN_BACKUP_DIR=~
 TONOS_CLI_DIR="$TON_DIR/tonos-cli/target/release"
 TONOS_CLI="$TON_DIR/tonos-cli/target/release/tonos-cli"
+#TONOS_CFG_FILE=_SOME_PATH_/tonlabs-cli.conf.json
 TON_CFG_DIR="$TON_DIR/configs"
 EOLONGFILE
 
