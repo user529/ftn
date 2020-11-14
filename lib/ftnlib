@@ -39,18 +39,18 @@ function tonos {
 
 
 function getconfig {
-    tonos $@ 2>&1 | tee $FTN_LOG/$1.log
+    tonos $@ 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
 function config {
-    tonos $@ 2>&1 | tee $FTN_LOG/$1.log
+    tonos $@ 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
 function runget {
     elector_addr=$(cat $FTN_KEYS_DIR/elections/elector-addr-base64)
-    tonos $1 $elector_addr $2 2>&1 | tee $FTN_LOG/$1.log
+    tonos $1 $elector_addr $2 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
@@ -185,7 +185,7 @@ function adnl {
 
 function balance { 
     get_account $2
-    tonos account "${account}" > ${FTN_LOG}/$1.log
+    tonos account "${account}" | tee -a ${FTN_LOG}/$1.log
     acc="$(cat "${FTN_LOG}/$1.log" | grep "address:" | awk -F':' '{printf ("address %s:%s", $2, $3)}')"
     bal="$(cat "${FTN_LOG}/$1.log" | grep "balance:" | awk -F':' '{printf ("balance %d", $2/1000000000)}')"
     echo -e "$acc\n$bal"
@@ -193,7 +193,7 @@ function balance {
 
 
 function transactions { 
-    tonos run "${FTN_ACCOUNT}" getTransactions {} --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" 2>&1 | tee $FTN_LOG/$1.log
+    tonos run "${FTN_ACCOUNT}" getTransactions {} --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
@@ -203,10 +203,10 @@ function confirm {
     # $3 - Transactions ID
     if [ -z "${3}" ]; then
         for trx in $(transactions | grep \"id\": | tr -d '",' | awk '{print $2}'); do
-            tonos call "${FTN_ACCOUNT}" confirmTransaction "{\"transactionId\":\"${trx}\"}" --abi ${TON_CFG_DIR}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR}/${2} 2>&1 | tee ${FTN_LOG}/$1.log 
+            tonos call "${FTN_ACCOUNT}" confirmTransaction "{\"transactionId\":\"${trx}\"}" --abi ${TON_CFG_DIR}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR}/${2} 2>&1 | tee -a ${FTN_LOG}/$1.log 
         done
     else
-        tonos call "${FTN_ACCOUNT}" confirmTransaction "{\"transactionId\":\"${3}\"}" --abi ${TON_CFG_DIR}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR}/${2} 2>&1 | tee ${FTN_LOG}/$1.log 
+        tonos call "${FTN_ACCOUNT}" confirmTransaction "{\"transactionId\":\"${3}\"}" --abi ${TON_CFG_DIR}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR}/${2} 2>&1 | tee -a ${FTN_LOG}/$1.log 
     fi
 }
 
@@ -227,7 +227,7 @@ function submit {
     fi
 
     #    "${TONOS_CLI}" call "${FT_ACCOUNT}" submitTransaction "{\"dest\":\"${1}\",\"value\":${nt},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_SEEDPHRASE}" > "${FTN_LOG}/submit.log" 2>&1 
-    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${account}\",\"value\":\"${NANO}\",\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee ${FTN_LOG}/$1.log 
+    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${account}\",\"value\":\"${NANO}\",\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee -a ${FTN_LOG}/$1.log 
 }
 
 
@@ -287,7 +287,7 @@ function recover {
 
 
 function exec {
-    tonos "${@:2}" 2>&1 | tee $FTN_LOG/$1.log
+    tonos "${@:2}" 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
@@ -341,29 +341,29 @@ function dpl_help {
 
 
 function dpl_info {
-    tonos run $DPL_ACCOUNT getDePoolInfo {} --abi $DPL_CFG_DIR/DePool.abi.json | tee $FTN_LOG/$1.log
+    tonos run $DPL_ACCOUNT getDePoolInfo {} --abi $DPL_CFG_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
 }
 
 
-function dpl_participant {\
-    read -r -d '' PARAMS <<EOF
+function dpl_participant {
+    read -r -d '' PARAMS <<EOF || true
 {"addr":"$FTN_ACCOUNT"}
 EOF
-    tonos run $DPL_ACCOUNT getParticipantInfo "$PARAMS" --abi $DPL_CFG_DIR/DePool.abi.json | tee $FTN_LOG/$1.log
+    tonos run $DPL_ACCOUNT getParticipantInfo "$PARAMS" --abi $DPL_CFG_DIR/DePool.abi.json | -a tee $FTN_LOG/$1.log
 }
 
 
 function dpl_events {
     if [ -n "$2" ]; then
-        tonos depool --addr $DPL_ACCOUNT events --since $2 | tee $FTN_LOG/$1.log
+        tonos depool --addr $DPL_ACCOUNT events --since $2 | tee -a $FTN_LOG/$1.log
     else
-            tonos depool --addr $DPL_ACCOUNT events | tee $FTN_LOG/$1.log
+            tonos depool --addr $DPL_ACCOUNT events | tee -a $FTN_LOG/$1.log
     fi
 }
 
 
 function dpl_tick {
-    tonos depool --addr "$DPL_ACCOUNT" ticktock --wallet "$FTN_ACCOUNT" --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee $FTN_LOG/$1.log
+    tonos depool --addr "$DPL_ACCOUNT" ticktock --wallet "$FTN_ACCOUNT" --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee -a $FTN_LOG/$1.log
 }
 
 
@@ -386,11 +386,11 @@ function dpl_stake {
 
 function dpl_stake_ordinary {
     echo "Making ordinary stake $2"
-    tonos depool --addr $DPL_ACCOUNT stake ordinary --wallet $FTN_ACCOUNT --value $2 --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee $FTN_LOG/$1.log
+    tonos depool --addr $DPL_ACCOUNT stake ordinary --wallet $FTN_ACCOUNT --value $2 --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee -a $FTN_LOG/$1.log
 }
 
 
 function dpl_stake_remove {
     echo "Removing ordinary stake $2"
-    tonos depool --addr $DPL_ACCOUNT stake remove --wallet $FTN_ACCOUNT --value $2 --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee $FTN_LOG/$1.log
+    tonos depool --addr $DPL_ACCOUNT stake remove --wallet $FTN_ACCOUNT --value $2 --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee -a $FTN_LOG/$1.log
 }
