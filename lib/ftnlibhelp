@@ -177,7 +177,7 @@ Description:
 
 _help["recover"]="\
 Usage:
-    ftn recover [attepmts]
+    ftn recover [ATTEMPTS]
 Description:
     Sends a request to check if the unlocked amount is available. And fetches if any.
     ATTEMPTS set the number of tries to fetch the amount. By default ATTEMPTS=1.
@@ -197,4 +197,51 @@ Usage:
 Description:
     Runs the passed <subcommand> using the tonos-cli.
     Is an analog of tonos-cli <SUBCOMMAND>.
+"
+
+_help["depool"]="\
+Usage:
+    ftn depool <SUBCOMMAND>
+Description:
+    Extends subset of commands for working with the DePool.
+    The following DePool subcommands are supported:
+        help [depool subcommand]
+        info
+        participant
+        stake (original or remove)
+
+"
+
+_help["dpl_info"]="\
+Usage:
+    ftn depool info
+Description:
+    Run 'getDePoolInfo' to the DePool and disply the result.
+"
+
+_help["dpl_events"]="\
+Usage:
+    ftn depool events [SINCE]
+Description:
+    Run 'events' to the DePool and disply the result.
+    SINCE - Unixtime format. This is the time from which events should be fetched.
+"
+
+_help["dpl_participant"]="\
+Usage:
+    ftn depool participant
+Description:
+    Run 'getParticipantInfo' to the DePool and disply the result.
+    It uses DPL_ACCOUNT and FTN_ACCOUNT from the ftn.conf as depool and participant addresses for the informations request.
+"
+
+_help["dpl_stake"]="\
+Usage:
+    ftn depool stake <TYPE> <AMOUNT>
+Description:
+    Allows to manage depool stakes.
+    TYPE - the following types are supported:
+        ordinary - sends the ordinary stake on behalf of the FTN_ACCOUNT for the next round.
+        remove - reduces the ordinary stake has been sent on behalf of the FTN_ACCOUNT for the next round.
+    AMOUNT - is the number of tokens.
 "

@@ -53,6 +53,10 @@ TONOS_CLI_DIR="$TON_DIR/tonos-cli/target/release"
 TONOS_CLI="$TON_DIR/tonos-cli/target/release/tonos-cli"
 #TONOS_CFG_FILE=_SOME_PATH_/tonlabs-cli.conf.json
 TON_CFG_DIR="$TON_DIR/configs"
+DPL_CFG_DIR="$TON_DIR/ton-labs-contracts/solidity/depool"
+# msig.keys.json is default key. Can be changed to a valid owner's key, i.e. the key for validatorWallet from getDePoolInfo.
+DPL_KEY_SIGN='msig.keys.json'
+DPL_ACCOUNT="\$(cat $KEYS_DIR/depool.addr)"
 EOLONGFILE
 
 # Handing out prmissions

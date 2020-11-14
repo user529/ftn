@@ -1,3 +1,9 @@
+ftn 0.1.3-0 (alpha);
+    * Introduced the 'depool' subcommand, which implements a new 2nd level subcommands subset for working with DePool.
+      Only base depool commands are supported: getDePoolInfo, getParticipantInfo, events, ticktock, stake ordinary, stake remove.
+      Please make sure the DePool address is listed in KEYS_DIR/depool.addr
+    * Small text description improovments
+
 ftn 0.1.2-9 (alpha);
     * Unified use of account synonyms in the balance and the submit subcommands
     * Added a new parameter TONOS_CFG_FILE in ftn.conf. You can use it to specify the path to tonos-cli.conf.json file.

@@ -2,8 +2,8 @@
 #. /etc/ftn.conf
 shopt -s extglob
 shopt -s nocasematch
-func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|accounts|transactions|confirm|submit|recover|getconfig|config|runget|exec|timediff|help)"
-ftn_version="0.1.2-9 (alpha)"
+func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|accounts|transactions|confirm|submit|recover|getconfig|depool|config|runget|exec|timediff|help)"
+ftn_version="0.1.3-0 (alpha)"
 
 
 function get_account {
@@ -313,4 +313,84 @@ function accounts {
     cd $FTN_KEYS_DIR
     echo $(ls *.addr | cut -d. -f1 )
     cd $OLDPWD
+}
+
+
+function depool {
+    depool_list="@(events|info|participant|tick|stake|help)"
+    if [ -n "$2" ]; then
+        case "$2" in
+        $depool_list) set "$1" "dpl_$2" "${@:3}"; $2 ${@:2};;
+        *) echo "Subcommand $2 not recognized. Please try using \"ftn help depool\".";;
+        esac
+    fi
+}
+
+
+function dpl_help {
+    . $FTN_WRP/lib/ftnlibhelp
+    if [ -n "$2" ]; then
+        ="dpl_$2"
+        section=$2
+    else
+        section="depool"
+    fi
+
+    echo "${_help[$section]}"
+}
+
+
+function dpl_info {
+    tonos run $DPL_ACCOUNT getDePoolInfo {} --abi $DPL_CFG_DIR/DePool.abi.json | tee $FTN_LOG/$1.log
+}
+
+
+function dpl_participant {\
+    read -r -d '' PARAMS <<EOF
+{"addr":"$FTN_ACCOUNT"}
+EOF
+    tonos run $DPL_ACCOUNT getParticipantInfo "$PARAMS" --abi $DPL_CFG_DIR/DePool.abi.json | tee $FTN_LOG/$1.log
+}
+
+
+function dpl_events {
+    if [ -n "$2" ]; then
+        tonos depool --addr $DPL_ACCOUNT events --since $2 | tee $FTN_LOG/$1.log
+    else
+            tonos depool --addr $DPL_ACCOUNT events | tee $FTN_LOG/$1.log
+    fi
+}
+
+
+function dpl_tick {
+    tonos depool --addr "$DPL_ACCOUNT" ticktock --wallet "$FTN_ACCOUNT" --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee $FTN_LOG/$1.log
+}
+
+
+function dpl_stake {
+    stake_list="@(ordinary|remove)"
+    if [ -n "$2" ]; then
+        if [ -z "$3" ]; then
+            echo "$@: Amount is not specified."
+        else
+            case "$2" in
+            $stake_list) set "$1" "$1_$2" "${@:3}"; $2 ${@:2};;
+            *) echo "Subcommand $2 is not recognized. Currently only 'ordinary' and 'remove' subcommands are supported. Stay tuned.";;
+            esac
+        fi
+    else
+        echo "$@: Type is not specified."
+    fi
+}
+
+
+function dpl_stake_ordinary {
+    echo "Making ordinary stake $2"
+    tonos depool --addr $DPL_ACCOUNT stake ordinary --wallet $FTN_ACCOUNT --value $2 --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee $FTN_LOG/$1.log
+}
+
+
+function dpl_stake_remove {
+    echo "Removing ordinary stake $2"
+    tonos depool --addr $DPL_ACCOUNT stake remove --wallet $FTN_ACCOUNT --value $2 --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee $FTN_LOG/$1.log
 }
