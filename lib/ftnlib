@@ -3,7 +3,7 @@
 shopt -s extglob
 shopt -s nocasematch
 func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|balance|accounts|transactions|confirm|submit|recover|getconfig|depool|config|runget|exec|timediff|help)"
-ftn_version="0.1.3-0 (alpha)"
+ftn_version="0.1.3-1 (alpha)"
 
 
 function get_account {
@@ -349,7 +349,7 @@ function dpl_participant {
     read -r -d '' PARAMS <<EOF || true
 {"addr":"$FTN_ACCOUNT"}
 EOF
-    tonos run $DPL_ACCOUNT getParticipantInfo "$PARAMS" --abi $DPL_CFG_DIR/DePool.abi.json | -a tee $FTN_LOG/$1.log
+    tonos run $DPL_ACCOUNT getParticipantInfo "$PARAMS" --abi $DPL_CFG_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
 }
 
 
