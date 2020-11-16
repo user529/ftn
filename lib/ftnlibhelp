@@ -208,6 +208,7 @@ Description:
         help [depool subcommand]
         info
         participant
+        replenish
         stake (original or remove)
 
 "
@@ -243,5 +244,13 @@ Description:
     TYPE - the following types are supported:
         ordinary - sends the ordinary stake on behalf of the FTN_ACCOUNT for the next round.
         remove - reduces the ordinary stake has been sent on behalf of the FTN_ACCOUNT for the next round.
+    AMOUNT - is the number of tokens.
+"
+
+_help["dpl_replenish"]="\
+Usage:
+    ftn depool replenish <AMOUNT>
+Description:
+    Allows to top up the depool contract amount.
     AMOUNT - is the number of tokens.
 "

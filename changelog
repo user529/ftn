@@ -1,5 +1,10 @@
+ftn 0.1.3-3 (alpha);
+    * Output of the 'ftn balance' subcommand has been enhanced by displaying the fractional part of the amount.
+    * Minor logging chanes: log path and log file has been put in quotes. It allows having a space character within the log path/file.
+    * Added support for the "depool replenish" subcommand.
+
 ftn 0.1.3-2 (alpha);
-    * Running of 'ftn balance' command has been fixed. Bug of version 0.1.3-1.
+    * Running of 'ftn balance' subcommand has been fixed. Bug of version 0.1.3-1.
 
 ftn 0.1.3-1 (alpha);
     * The way of logging all subcommands has been changed from 'overwriting' to 'appending'.
