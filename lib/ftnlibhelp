@@ -209,7 +209,7 @@ Description:
         info
         participant
         replenish
-        stake (original or remove)
+        stake (ordinary or remove)
 
 "
 
@@ -222,10 +222,11 @@ Description:
 
 _help["dpl_events"]="\
 Usage:
-    ftn depool events [SINCE]
+    ftn depool events [SINCE | all]
 Description:
     Run 'events' to the DePool and disply the result.
-    SINCE - Unixtime format. This is the time from which events should be fetched.
+    SINCE - Unixtime format. This is the time from which events should be fetched. If omited, the start time of the current round will be used.
+    all - allows to fetch events for the all time. Usage: 'ftn depool events all'
 "
 
 _help["dpl_participant"]="\
