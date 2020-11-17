@@ -362,7 +362,7 @@ function dpl_events {
         fi
     else
         #getting start time of the current round
-        utime=$(getconfig "getconfig" "34" | grep "utime_since" | awk "{print $2}" | tr -d ',')
+        utime=$(getconfig "getconfig" "34" | grep utime_since | awk '{print $2}' | tr -d ',')
         since_params="--since $utime"
     fi
     tonos depool --addr "$DPL_ACCOUNT" events "$since_params" | tee -a "$FTN_LOG/$1.log"
