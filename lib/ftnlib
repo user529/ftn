@@ -188,7 +188,7 @@ function checkrounds {
     declare -a rounds
     rounds=$(echo "$result" | jq -r '.rounds | .[]? | .id')
     for round in $rounds; do 
-        reason=$(echo "$result" | jq -r "\'.rounds | .$round | .id\'")
+        reason=$(echo "$result" | jq -r '.rounds | ."'$round'" | .completionReason')
         echo "roundId:$round ($reason)"
     done
 }
