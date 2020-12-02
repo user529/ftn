@@ -1,3 +1,9 @@
+ftn 0.1.3-5 (alpha);
+    * Supported tonos-cli 'getRounds' subcommand for DePool.
+    * Introduced the 'checkrounds' subcommand.
+    * fixed using tonos-cli --config parameter
+    * Added support of account synonyms for the 'depool participant' subcommand.
+
 ftn 0.1.3-4 (alpha);
     * Fixed displaying help for the subset of the 'depool' subcommands. Usage: ftn depool help [depool subcommand].
     * Fixed help description for depool help subcommand.

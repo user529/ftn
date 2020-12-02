@@ -9,6 +9,7 @@ You can use with the following commands:
     runget - runs method on the elector contract address
     exec - runs the passed command using the tonos-cli
     adnl - show current node adnl and pubkey
+    checkrounds - checks if the stake has been sent 
     balance - show account balance
     accounts - list of account synomyms
     transactions - shows awaiting transactions on the account
@@ -56,6 +57,14 @@ Description:
         {keys_dir}/(hostname)-election-adnl-key
         {keys_dir}/(hostname)-election-key
 "
+
+_help["checkrounds"]="\
+Usage:
+    ftn checkrounds
+Description:
+    Displays information about the previous and the current rounds in a readable format.
+"
+
 
 _help["config"]="\
 Usage:
@@ -231,10 +240,14 @@ Description:
 
 _help["dpl_participant"]="\
 Usage:
-    ftn depool participant
+    ftn depool participant [ACCOUNT or SYNONYM]
 Description:
     Run 'getParticipantInfo' to the DePool and disply the result.
-    It uses DPL_ACCOUNT and FTN_ACCOUNT from the ftn.conf as depool and participant addresses for the informations request.
+    It uses DPL_ACCOUNT as the DePool account.
+    ACCOUNT number of target account. Must be full number
+         \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
+    SYNONYM the name of account synonym. Please see the accounts subcommand for more info.
+    If the ACCOUNT or SYNONYM omited, then FTN_ACCOUNT from the ftn.conf will be used as participant addresses for the informations request.
 "
 
 _help["dpl_stake"]="\
@@ -254,4 +267,12 @@ Usage:
 Description:
     Allows to top up the depool contract amount.
     AMOUNT - is the number of tokens.
+"
+
+
+_help["dpl_getrounds"]="\
+Usage:
+    ftn depool getrounds 
+Description:
+    Runs 'getRounds' command in the DePool and displays the result.
 "
