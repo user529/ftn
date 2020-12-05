@@ -3,7 +3,7 @@
 shopt -s extglob
 shopt -s nocasematch
 func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|checkrounds|balance|accounts|transactions|confirm|submit|recover|getconfig|depool|config|runget|exec|timediff|help)"
-ftn_version="0.1.3-5 (alpha)"
+ftn_version="0.1.3-6 (alpha)"
 
 
 function get_account {
@@ -187,9 +187,25 @@ function checkrounds {
     result="{$( dpl_getrounds | tail +$(($num+1)) )"
     declare -a rounds
     rounds=$(echo "$result" | jq -r '.rounds | .[]? | .id')
+    nano=$((10**9))
+    . $FTN_WRP/lib/ftnlibdcodes
     for round in $rounds; do 
         reason=$(echo "$result" | jq -r '.rounds | ."'$round'" | .completionReason')
-        echo "roundId:$round ($reason)"
+        step=$(echo "$result" | jq -r '.rounds | ."'$round'" | .step')
+        f_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .stake')
+        v_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .validatorStake')
+        reward=$(echo "$result" | jq -r '.rounds | ."'$round'" | .rewards')
+        n=$(echo "$result" | jq -r '.rounds | ."'$round'" | .participantQty')
+        hash=$(echo "$result" | jq -r '.rounds | ."'$round'" | .vsetHashInElectionPhase')
+        echo -e "roundID $round 
+        reason:          $((16#${reason:2})) ($reason ${_dcode_reason[$reason]})
+        step:            $((16#${step:2})) ($step ${_dcode_step[$step]})
+        full stake:      $((16#${f_stake:2}/$nano)) ($f_stake)
+        validaror stake: $((16#${v_stake:2}/$nano)) ($v_stake)
+        participants:    $((16#${n:2})) ($n)
+        reward:          $((16#${reward:2})) ($reward)
+        hash:            $hash
+        "
     done
 }
 

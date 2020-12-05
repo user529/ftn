@@ -1,0 +1,48 @@
+
+declare -A _dcode_step
+declare -A _dcode_reason
+
+#    Step:
+#    0x0 - PrePooling: step reserved for receiving half of vesting/lock stake from participants. Nothing else happens when round is in this step.
+#    0x1 - Pooling: DePool receives stakes from participants. Half of vesting/lock stakes are invested into the round in the pooling step, the other into the round in the PrePooling step. This way, the other half of these stakes is always invested into the very next round.
+#    0x2 - WaitingValidatorRequest: waiting for election request from validator. The elections have begun, it's no longer possible to invest stakes into this round. Once election request from validator is received, DePool can participate in elections.
+#    0x3 - WaitingIfStakeAccepted: stake has been sent to elector. Waiting for answer from elector.
+#    0x4 - WaitingValidationStart: elector has accepted round stake. Validator is candidate. Waiting for validation to start, to know if validator won elections.
+#    0x5 - WaitingIfValidatorWinElections: DePool has tried to recover stake in validation period to know if validator won elections. Waiting for elector answer.
+#    0x6 - WaitingUnfreeze: DePool received elector answer and waits for the end of unfreeze period. If at this step CompletionReason!=0x0, then validator did not win and DePool is waiting to return/reinvest funds after the next round. Else validator won elections.
+#    0x7 - WaitingReward: Unfreeze period has been ended. Request to recover stake has been sent to elector. Waiting for answer from elector.
+#    0x8 - Completing: Returning or reinvesting participant stakes because round is completed.
+#    0x9 - Completed: All stakes of the round have been returned or reinvested. At the next round rotation the round will be deleted from the DePool.
+
+_dcode_step["0x0"]="PrePooling"
+_dcode_step["0x1"]="Pooling"
+_dcode_step["0x2"]="WaitingValidatorRequest"
+_dcode_step["0x3"]="WaitingIfStakeAccepted"
+_dcode_step["0x4"]="WaitingValidationStart"
+_dcode_step["0x5"]="WaitingIfValidatorWinElections"
+_dcode_step["0x6"]="WaitingUnfreeze"
+_dcode_step["0x7"]="WaitingReward"
+_dcode_step["0x8"]="Completing"
+_dcode_step["0x9"]="Completed"
+
+
+#    Reason:
+#    0x0 - Round is not completed yet.
+#    0x1 - Pool was closed by owner.
+#    0x2 - The round was one of the first two rounds after deployment: 0x0 or 0x1. These first rounds are empty and are used only to launch the round rotation mechanism. They complete with this code without performing any additional actions.
+#    0x3 - Validator stake is less than validatorAssurance.
+#    0x4 - Stake is rejected by elector for some reason.
+#    0x5 - Round is completed successfully. DePool won elections, its node performed validation and it received the reward from elector.
+#    0x6 - DePool has participated in elections but lost the elections.
+#    0x7 - Validator is blamed during investigation phase.
+#    0x8 - Validator sent no request during election phase.
+
+_dcode_reason["0x0"]="Round is not completed yet."
+_dcode_reason["0x1"]="Pool was closed by owner."
+_dcode_reason["0x2"]="The round was one of the first two rounds after deployment."
+_dcode_reason["0x3"]="Validator stake is less than validatorAssurance."
+_dcode_reason["0x4"]="Stake is rejected by elector for some reason."
+_dcode_reason["0x5"]="DePool won elections."
+_dcode_reason["0x6"]="DePool has lost the elections."
+_dcode_reason["0x7"]="Validator is blamed."
+_dcode_reason["0x8"]="Validator sent no request during election phase."

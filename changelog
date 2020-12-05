@@ -1,3 +1,7 @@
+ftn 0.1.3-6 (alpha);
+    * The output of 'checkrounds' subcommand has been beautified.
+
+
 ftn 0.1.3-5 (alpha);
     * Supported tonos-cli 'getRounds' subcommand for DePool.
     * Introduced the 'checkrounds' subcommand.
