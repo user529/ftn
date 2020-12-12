@@ -34,7 +34,7 @@ function version {
 
 
 function get_mode {
-    test $(ps -u dev -o command | grep validator-engine | grep -cv) -gt 0 && mode="validator" || mode="tonos"
+    test $(ps -u dev -o command | grep validator-engine | grep -cv grep) -gt 0 && mode="validator" || mode="tonos"
 }
 
 
