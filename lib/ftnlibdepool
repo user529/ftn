@@ -16,9 +16,9 @@ function dpl_getrounds {
 
 function dpl_participant {
     get_account $2
-    read -r -d '' PARAMS << EOF
+    read -r -d '' PARAMS << EOD || true
     {"addr":"$account"}
-EOF
+EOD
     tonos run $DEPOOL_ACC getParticipantInfo $PARAMS --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
 }
 
@@ -37,12 +37,12 @@ function dpl_events {
 
 
 function dpl_tick {
-    tonos depool --addr $DEPOOL_ACC ticktock --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+    tonos depool --addr $DEPOOL_ACC ticktock --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
 }
 
 
 function dpl_replenish {
-    tonos depool --addr $DEPOOL_ACC replenish --value $2 --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+    tonos depool --addr $DEPOOL_ACC replenish --value $2 --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
 }
 
 
@@ -65,11 +65,11 @@ function dpl_stake {
 
 function dpl_stake_ordinary {
     echo "Making ordinary stake $2"
-    tonos depool --addr $DEPOOL_ACC stake ordinary --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+    tonos depool --addr $DEPOOL_ACC stake ordinary --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
 }
 
 
 function dpl_stake_remove {
     echo "Removing ordinary stake $2"
-    tonos depool --addr $DEPOOL_ACC stake remove --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+    tonos depool --addr $DEPOOL_ACC stake remove --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
 }

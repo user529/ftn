@@ -18,7 +18,7 @@ In 'tonos' mode you can use with the following commands:
     mode - displays the current mode
     help - displays this page
 In 'validator' mode you can additionally use with the following commands:
-    adnl - show current node adnl and pubkey
+    adnl - shows the current adnl of the FreeTON node
     timediff - shows how far your node is lagging behind the network
     electionrun - send the stake to the elections
     recover - recovers the unlocked tockens. It only works if elections are open.
@@ -28,7 +28,7 @@ In 'validator' mode you can additionally use with the following commands:
 Check \"ftn help [sub-command]\" for additional help.
 
 In most cases, the logs of these sub-commands can be found in the FTN_LOG directory. 
-By default, FTN_LOG=/var/log/ftn.
+By default FTN_LOG=/var/log/ftn.
 "
 
 _help["help"]="\
@@ -51,6 +51,7 @@ Description:
     ACCOUNT is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
     SYNONYM is optional. The list of possible synonyms can be displayed by the accounts subcommand.
 "
+
 _help["accounts"]="\
 Usage:
     ftn accounts
@@ -63,9 +64,8 @@ _help["adnl"]="\
 Usage:
     ftn andl
 Description:
-    Shows the adnl and pubkey from the following files:
+    Shows the current adnl from the following file:
         {keys_dir}/(hostname)-election-adnl-key
-        {keys_dir}/(hostname)-election-key
 "
 
 _help["checkrounds"]="\
