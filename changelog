@@ -1,3 +1,6 @@
+ftn 0.1.4-rc2
+    * Fixed a bug in 'confirm' subcommand.
+
 ftn 0.1.4-rc
     * A few improvements in the in 'ftnautoconf' utility.
     * Fixed an error filling in here-doc based parameters.
