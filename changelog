@@ -1,3 +1,6 @@
+ftn 0.1.4-rc4
+    * Fixed an error in checking the list of available subcommands.
+
 ftn 0.1.4-rc3
     * Fixed an error in checking the active process of the FreeTON validator node.
     * Fixed one more bug in 'confirm' subcommand.
