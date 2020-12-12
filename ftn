@@ -4,11 +4,12 @@
 . ~/ftn.conf
 . $FTN_WRP/lib/ftnlib
 
-if [ -n "$1" ]; then
+test $1 &&
     case "$1" in
-    $func_list) $1 ${@:1};;
-	"--version") version;;
+    $tonos_list) $1 ${@:1};;
+    $ftn_base_list) $1 ${@:1};;
+    $ftn_node_list) get_mode; test mode = "validator" && $1 ${@:1} || echo "Command is not supported in '$mode' mode";;
+    $msig_elector_list) get_mode; test mode = "validator" && $1 ${@:1} || echo "Command is not supported in '$mode' mode";;
+    "--version") version;;
     *) echo "Command $1 not recognized. Please try using \"ftn help\".";;
     esac
-fi
-

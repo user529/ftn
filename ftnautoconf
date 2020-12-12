@@ -22,24 +22,54 @@ ignore_list="@(docker)"
 #
 #########################################
 
-# Searching for FreeTON directory
+# Searching for the FreeTON node directory
 TON_DIR=$(find / -type d -name $NET_NAME -print -quit 2>/dev/null | grep -vE $ignore_list)
-if [ -z "TON_DIR" ]; then
-    echo "ERROR: Can't find FreeTON instalation."
-    exit 1
+if [ -z "$TON_DIR" ]; then
+    echo "Dind't find the FreeTON node instalation path."
+
+    STUB=$(echo ~)
+    echo "Putting a stub as the FreeTON node path in the configuration file: $STUB"
+    TON_CFG_DIR="$STUB"
+    TON_DIR="$STUB"
+    TON_WORK_DIR="$STUB"
+    KEYS_DIR="$STUB/ton-keys"
+
+    echo "Starting to search for other directories on my own."
+    TONOS_CLI_PATH="$(find / -type d -name tonos-cli -print -quit 2>/dev/null | grep -vE $ignore_list)"
+    if [ -z "$TONOS_CLI_PATH" ]; then
+        echo "Error: Didn't find the tonos-cli installation path. Exiting." 
+        exit 1
+    fi
+    TON_CONTRACTS_PATH="$(find / -type d -name ton-labs-contracts -print -quit 2>/dev/null | grep -vE $ignore_list)"
+    if [ -z "$TON_CONTRACTS_PATH" ]; then
+        echo "Error: Didn't find the ton-labs-contracts path. Exiting." 
+        exit 1
+    fi
+
+    echo "Found tonos-cli path: $TONOS_CLI_PATH"
+    TONOS_CLI_DIR="$TONOS_CLI_PATH/target/release"
+    TONOS_CLI="$TONOS_CLI_DIR/tonos-cli"
+    echo "Found ton-labs-contracs path: $TON_CONTRACTS_PATH"
+    MSG_CONTRACT_DIR="$TON_CONTRACTS_PATH/solidity/safemultisig/"
+    DPL_CONTRACT_DIR="$TON_CONTRACTS_PATH/solidity/depool"
+else 
+    echo "Found the FreeTON node instalation path: $TON_DIR."
+    . $TON_DIR/scripts/env.sh
+    TON_CFG_DIR="$TON_DIR/configs"
+    TONOS_CLI_DIR="$TON_DIR/tonos-cli/target/release"
+    TONOS_CLI="$TON_DIR/tonos-cli/target/release/tonos-cli"
+    MSG_CONTRACT_DIR="$TON_DIR/ton-labs-contracts/solidity/safemultisig"
+    DPL_CONTRACT_DIR="$TON_DIR/ton-labs-contracts/solidity/depool"
 fi
 
 FTN_WRP=$(pwd -P)
 export PATH="$FTN_WRP:$PATH"
 echo "export PATH=\"$FTN_WRP:\$PATH\"" >> ~/.profile
 
-. $TON_DIR/scripts/env.sh
-#ADDR_FILE="$(hostname -s).addr"
-#TON_MSIGACC=$(cat "${KEYS_DIR}/${ADDR_FILE}")
 
 # Composing ftn config file 
 #sudo bash -c "cat <<EOLONGFILE > /etc/ftn.conf
-sudo cat <<EOLONGFILE > ~/ftn.conf
+cat <<EOLONGFILE > ~/ftn.conf
 FTN_WRP="$FTN_WRP"
 FTN_HOST="\$(hostname -s)"
 FTN_ACCOUNT="\$(cat $KEYS_DIR/\$FTN_HOST.addr)"
@@ -49,23 +79,30 @@ FTN_DIR="$TON_DIR"
 FTN_DB_DIR="$TON_WORK_DIR"
 FTN_AUTO_BACKUP_KEYS="Y"
 FTN_BACKUP_DIR=~
-TONOS_CLI_DIR="$TON_DIR/tonos-cli/target/release"
-TONOS_CLI="$TON_DIR/tonos-cli/target/release/tonos-cli"
-#TONOS_CFG_FILE=_SOME_PATH_/tonlabs-cli.conf.json
-TON_CFG_DIR="$TON_DIR/configs"
-DPL_CFG_DIR="$TON_DIR/ton-labs-contracts/solidity/depool"
+TONOS_CLI_DIR="$TONOS_CLI_DIR"
+TONOS_CLI="$TONOS_CLI"
+#TONOS_CFG_FILE=/SOME/PATH/tonlabs-cli.conf.json
+TON_CFG_DIR="$TON_CFG_DIR"
+MULSIG_CONTRACT_DIR="$MSG_CONTRACT_DIR"
+DEPOOL_CONTRACT_DIR="$DPL_CONTRACT_DIR"
 # msig.keys.json is default key. Can be changed to a valid owner's key, i.e. the key for validatorWallet from getDePoolInfo.
-DPL_KEY_SIGN='msig.keys.json'
-DPL_ACCOUNT="\$(cat $KEYS_DIR/depool.addr)"
+DEPOOL_KEY='msig.keys.json'
+DEPOOL_ACC="\$(cat $KEYS_DIR/depool.addr)"
 EOLONGFILE
 
 # Handing out prmissions
-chmod 755 ${FTN_WRP}/ftn
-chmod 644 ${FTN_WRP}/lib/ftnlib*
+chmod 750 ${FTN_WRP}/ftn
+chmod 640 ${FTN_WRP}/lib/ftnlib*
 
 # Create log dir
-sudo mkdir -p $LOG_DIR
-sudo chmod 755 $LOG_DIR
+sudo mkdir -m 750 -p $LOG_DIR
 user=$(id -un)
 group=$(id -gn)
 sudo chown $user:$group $LOG_DIR
+
+# Checking if necessary key path and addresses files exists
+test -d $KEYS_DIR || mkdir -p $KEYS_DIR
+MSIG_ACC=$KEYS_DIR/$(hostname -s).addr
+DEPOOL_ACC=$KEYS_DIR/depool.addr
+test -r $MSIG_ACC || touch $MSIG_ACC
+test -r $DEPOOL_ACC || touch $DEPOOL_ACC

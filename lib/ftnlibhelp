@@ -3,25 +3,27 @@ declare -A _help
 _help["overview"]="\
 ftn is a wrapper for the tonos-cli.
 Don't take it too seriously. It's just a local stuff that helps me to shrink long and boring commands into short ones.
-You can use with the following commands:
+In 'tonos' mode you can use with the following commands:
     config - the same as \"tonos-cli config\"
     getgonfig - the same as \"tonos-cli getconfig\"
     runget - runs method on the elector contract address
     exec - runs the passed command using the tonos-cli
-    adnl - show current node adnl and pubkey
-    checkrounds - checks if the stake has been sent 
     balance - show account balance
     accounts - list of account synomyms
     transactions - shows awaiting transactions on the account
     confirm - allows to confirm awaiting transactions with a key
     convert - converts an amount to nanotockens
     submit - submits tokens to an account
+    checkrounds - checks if the stake has been sent 
+    mode - displays the current mode
+    help - displays this page
+In 'validator' mode you can additionally use with the following commands:
+    adnl - show current node adnl and pubkey
+    timediff - shows how far your node is lagging behind the network
     electionrun - send the stake to the elections
     recover - recovers the unlocked tockens. It only works if elections are open.
     electionlog - shows the last N lines from the log of the \"electionrun\" command
     setstake - sets the stake amount used by the \"electionrun\" command
-    timediff - shows how far your node is lagging behind the network
-    help - displays this page
 
 Check \"ftn help [sub-command]\" for additional help.
 
@@ -31,6 +33,14 @@ By default, FTN_LOG=/var/log/ftn.
 
 _help["help"]="\
 I have nothing more to say here.
+"
+
+_help["mode"]="\
+Usage:
+    ftn mode
+Description:
+    Checks if the FreeTON validator node is working on the machine 
+    and displays the current mode the ftn wrapper can be used.
 "
 
 _help["balance"]="\

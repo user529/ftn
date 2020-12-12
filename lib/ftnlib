@@ -2,9 +2,17 @@
 #. /etc/ftn.conf
 shopt -s extglob
 shopt -s nocasematch
-func_list="@(convert|electionlog|electionrun|extrastake|setstake|adnl|checkrounds|balance|accounts|transactions|confirm|submit|recover|getconfig|depool|config|runget|exec|timediff|help)"
-ftn_version="0.1.3-6 (alpha)"
 
+tonos_list="@(convert|balance|transactions|confirm|submit|config|runget|exec|getconfig)"
+ftn_base_list="@(checkrounds|accounts|depool|mode|help)"
+ftn_node_list="@(adnl|timediff)"
+msig_elector_list="@(electionlog|electionrun|extrastake|setstake|recover)"
+
+ftn_version="0.1.3-7 (alpha; unstable;)"
+
+
+##########
+# Common stuff
 
 function get_account {
     if [ -z "${1}" ]; then
@@ -14,8 +22,8 @@ function get_account {
     elif [[ ${1} == *":"* ]]; then
         account=${1}
     else
-        echo "Can't recognize account ($1). Exiting."
-        exit 0
+        echo "Error: can't recognize account ($1). The subcommand cannot be proceeded."
+        exit 1
     fi
 }
 
@@ -25,41 +33,163 @@ function version {
 }
 
 
+function get_mode {
+    test $(pidof -q validator-engine) && mode="validator" || mode="tonos"
+}
+
+
 function tonos {
     date
     echo "ftnlib.tonos: $@"
-    cd "${FTN_DIR}/scripts"
-    if [ -z $TONOS_CFG_FILE ]; then
-        ${TONOS_CLI_DIR}/tonos-cli $@
-    else
-        ${TONOS_CLI_DIR}/tonos-cli --config $TONOS_CFG_FILE $@
-    fi
+    cd $TONOS_CLI_DIR
+    test "$TONOS_CFG_FILE" && $TONOS_CLI_DIR/tonos-cli --config $TONOS_CFG_FILE $@ \
+        || $TONOS_CLI_DIR/tonos-cli $@
     cd $OLD_PWD
 }
 
 
+##########
+# Commands for the ftn_base_list
+
+function help {
+    . $FTN_WRP/lib/ftnlibhelp
+    test $2 && section=$2 || section="overview"
+    echo "${_help[$section]}"
+}
+
+
+function accounts {
+    find $FTN_KEYS_DIR -name *.addr -printf "%f\n" | cut -d. -f1 
+}
+
+
+function depool {
+    . $FTN_WRP/lib/ftnlibdepool
+    depool_list="@(events|info|participant|tick|stake|replenish|getrounds|help)"
+    test $2 &&
+        case "$2" in
+        $depool_list) set "$1" "dpl_$2" "${@:3}"; $2 ${@:2};;
+        *) echo "Subcommand $2 not recognized. Please try using \"ftn help depool\".";;
+        esac
+}
+
+
+function mode {
+    get_mode
+    echo "ftn works in '$mode' mode"
+}
+
+
+function checkrounds {
+    num=$(dpl_getrounds "dpl_getrounds" | grep -n "Result:" | awk -F ':' '{print $1}')
+    result="{$( dpl_getrounds | tail +$(($num+1)) )"
+    declare -a rounds
+    rounds=$(echo "$result" | jq -r '.rounds | .[]? | .id')
+    nano=$((10**9))
+    . $FTN_WRP/lib/ftnlibdcodes
+    for round in $rounds; do 
+        reason=$(echo "$result" | jq -r '.rounds | ."'$round'" | .completionReason')
+        step=$(echo "$result" | jq -r '.rounds | ."'$round'" | .step')
+        f_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .stake')
+        v_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .validatorStake')
+        reward=$(echo "$result" | jq -r '.rounds | ."'$round'" | .rewards')
+        n=$(echo "$result" | jq -r '.rounds | ."'$round'" | .participantQty')
+        hash=$(echo "$result" | jq -r '.rounds | ."'$round'" | .vsetHashInElectionPhase')
+        echo -e "roundID $round 
+        reason:          $((16#${reason:2})) ($reason ${_dcode_reason[$reason]})
+        step:            $((16#${step:2})) ($step ${_dcode_step[$step]})
+        full stake:      $((16#${f_stake:2}/$nano)) ($f_stake)
+        validaror stake: $((16#${v_stake:2}/$nano)) ($v_stake)
+        participants:    $((16#${n:2})) ($n)
+        reward:          $((16#${reward:2})) ($reward)
+        hash:            $hash
+        "
+    done
+}
+
+
+##########
+# Commands for the tonos_list
+
 function getconfig {
-    tonos $@ 2>&1 | tee -a "$FTN_LOG/$1.log"
+    tonos $@ 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
 function config {
-    tonos $@ 2>&1 | tee -a "$FTN_LOG/$1.log"
+    tonos $@ 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
 function runget {
-    elector_addr=$(cat $FTN_KEYS_DIR/elections/elector-addr-base64)
-    tonos $1 $elector_addr $2 2>&1 | tee -a "$FTN_LOG/$1.log"
+    elector_addr=$(ftn getconfig 1 | tail -1 | tr -d '" ' | awk -F: '{print "-1:"$2}')
+    tonos $1 $elector_addr $2 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 
 function convert {
-    cd "${FTN_DIR}/scripts"
-    ${TONOS_CLI_DIR}/tonos-cli $1 tokens $2 | tail -1
-    cd $OLD_PWD
+    tonos $1 tokens $2 | tail -1
 }
 
+
+function balance { 
+    get_account $2
+    result=$(tonos account "$account" | tee -a $FTN_LOG/$1.log)
+    acc=$(echo "$result" | grep "address:" | awk -F':' '{printf ("address %s:%s", $2, $3)}')
+    bal=$(echo "$result" | grep "balance:" | awk -F':' '{printf ("balance %g", $2/1000000000)}')
+    echo -e "$acc\n$bal"
+}
+
+
+function transactions { 
+    tonos run $FTN_ACCOUNT getTransactions {} --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json 2>&1 | tee -a $FTN_LOG/$1.log
+}
+
+
+function confirm {
+    # $1 = confirm    # This parameter is always equal to the function name
+    # $2 - Key name (i.e. custodian1.key.json. Please make sure the key is located in FTN_KEYS_DIR)
+    # $3 - Transactions ID
+    if [ -z "$3" ]; then
+        for trx in $(transactions | grep \"id\": | tr -d '",' | awk '{print $2}'); do
+            read -r -d '' PARAMS << EOF
+            {"transactionId":"$trx"}
+EOF
+            tonos call $FTN_ACCOUNT confirmTransaction $PARAMS: --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json --sign $FTN_KEYS_DIR/$2 2>&1 | tee -a $FTN_LOG/$1.log
+        done
+    else
+        read -r -d '' PARAMS << EOF
+        "{"transactionId":"$3"}"
+EOF
+        tonos call $FTN_ACCOUNT confirmTransaction $PARAMS --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json --sign $FTN_KEYS_DIR/$2 2>&1 | tee -a $FTN_LOG/$1.log
+    fi
+}
+
+
+function submit { 
+    # $1 = submit    # This parameter is always equal to the function name
+    # $2 - Target account
+    # $3 - Amount    # Please note this ia not NANOAMOUNT!
+    # $4 - Bounce    # Can be False or True. 'True' is default value. Non case sensitive.
+    # $5 - Payload   # Payload block
+    get_account $2
+    NANO=$(ftn convert $3)
+    echo $NANO
+    test "$4" = "false" && isBounce="false" || isBounce="true"
+    read -r -d '' PARAMS << EOF
+    {"dest":"$account","value":"$NANO","bounce":"$isBounce","allBalance":"false","payload":"$5"}
+EOF
+    tonos call $FTN_ACCOUNT submitTransaction $PARAMS --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json --sign $FTN_KEYS_DIR/msig.keys.json 2>&1 | tee -a $FTN_LOG/$1.log
+}
+
+
+function exec {
+    tonos "${@:2}" 2>&1 | tee -a $FTN_LOG/$1.log
+}
+
+
+##########
+# Commands for the msig_elector_list
 
 function electionlog {
     if [ -z "$2" ]; then
@@ -88,7 +218,7 @@ function electionrun {
         exit 0
     fi
 
-    if [ "$FTN_AUTO_BACKUP_KEYS" = "Y" ]; then
+    if [ "$FTN_AUTO_BACKUP_KEYS" == "Y" ]; then
         #Backup old keys before sending a new stake
         gzip -rc "${FTN_KEYS_DIR}" > "$FTN_BACKUP_DIR/elections.$(date +%Y.%m.%d_%H-%M).gz"
         gzip -rc "${FTN_DB_DIR}/db/keyring/" > "$FTN_BACKUP_DIR/keyring.$(date +%Y.%m.%d_%H-%M).gz"
@@ -122,7 +252,7 @@ function extrastake {
 
 
 function setstake { 
-    . "${FTN_DIR}/scripts/env.sh"
+#    . "${FTN_DIR}/scripts/env.sh"
 
 #    function get_mid_stake {
 #        ELECTOR_ADDR="$(cat "$KEYS_DIR/elections/elector-addr-base64")"
@@ -166,95 +296,6 @@ function setstake {
     fi
     echo $stake > "${FTN_KEYS_DIR}/elections/stake"
     echo "${stake} set as stake."
-}
-
-
-function adnl { 
-    adnlfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-adnl-key"
-    #keyfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-key"
-    if [ -z "${adnlfile}" ]; then
-        echo "ADNL adress not found."
-    else
-        adnl=$(cat "${adnlfile}" | grep "created new key")
-        #pubkey=$(cat "${keyfile}" | grep "created new key")
-        #echo -e "adnl: ${adnl:16}\npubkey: ${pubkey:16}"
-        echo -e "adnl: ${adnl:16}"
-    fi
-}
-
-function checkrounds {
-    num=$(dpl_getrounds "dpl_getrounds" | grep -n "Result:" | awk -F ':' '{print $1}')
-    result="{$( dpl_getrounds | tail +$(($num+1)) )"
-    declare -a rounds
-    rounds=$(echo "$result" | jq -r '.rounds | .[]? | .id')
-    nano=$((10**9))
-    . $FTN_WRP/lib/ftnlibdcodes
-    for round in $rounds; do 
-        reason=$(echo "$result" | jq -r '.rounds | ."'$round'" | .completionReason')
-        step=$(echo "$result" | jq -r '.rounds | ."'$round'" | .step')
-        f_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .stake')
-        v_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .validatorStake')
-        reward=$(echo "$result" | jq -r '.rounds | ."'$round'" | .rewards')
-        n=$(echo "$result" | jq -r '.rounds | ."'$round'" | .participantQty')
-        hash=$(echo "$result" | jq -r '.rounds | ."'$round'" | .vsetHashInElectionPhase')
-        echo -e "roundID $round 
-        reason:          $((16#${reason:2})) ($reason ${_dcode_reason[$reason]})
-        step:            $((16#${step:2})) ($step ${_dcode_step[$step]})
-        full stake:      $((16#${f_stake:2}/$nano)) ($f_stake)
-        validaror stake: $((16#${v_stake:2}/$nano)) ($v_stake)
-        participants:    $((16#${n:2})) ($n)
-        reward:          $((16#${reward:2})) ($reward)
-        hash:            $hash
-        "
-    done
-}
-
-
-function balance { 
-    get_account $2
-    result=$(tonos account "${account}" | tee -a "$FTN_LOG/$1.log")
-    acc=$(echo "$result" | grep "address:" | awk -F':' '{printf ("address %s:%s", $2, $3)}')
-    bal=$(echo "$result" | grep "balance:" | awk -F':' '{printf ("balance %g", $2/1000000000)}')
-    echo -e "$acc\n$bal"
-}
-
-
-function transactions { 
-    tonos run "${FTN_ACCOUNT}" getTransactions {} --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" 2>&1 | tee -a "$FTN_LOG/$1.log"
-}
-
-
-function confirm {
-    # $1 = confirm    # This parameter is always equal to the function name
-    # $2 - Key name (i.e. custodian1.key.json. Please make sure the key is located in FTN_KEYS_DIR)
-    # $3 - Transactions ID
-    if [ -z "${3}" ]; then
-        for trx in $(transactions | grep \"id\": | tr -d '",' | awk '{print $2}'); do
-            tonos call "${FTN_ACCOUNT}" confirmTransaction "{\"transactionId\":\"${trx}\"}" --abi ${TON_CFG_DIR}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR}/${2} 2>&1 | tee -a "$FTN_LOG/$1.log" 
-        done
-    else
-        tonos call "${FTN_ACCOUNT}" confirmTransaction "{\"transactionId\":\"${3}\"}" --abi ${TON_CFG_DIR}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR}/${2} 2>&1 | tee -a "$FTN_LOG/$1.log"
-    fi
-}
-
-
-function submit { 
-    # $1 = submit    # This parameter is always equal to the function name
-    # $2 - Target account
-    # $3 - Amount    # Please note this ia not NANOAMOUNT!
-    # $4 - Bounce    # Can be False or True. 'True' is default value. Non case sensitive.
-    # $5 - Payload   # Payload block
-    get_account $2
-    NANO=$(ftn convert $3)
-    echo $NANO
-    if [ "${4}" = "false" ]; then
-      isBounce=false
-    else
-      isBounce=true
-    fi
-
-    #    "${TONOS_CLI}" call "${FT_ACCOUNT}" submitTransaction "{\"dest\":\"${1}\",\"value\":${nt},\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_SEEDPHRASE}" > "${FTN_LOG}/submit.log" 2>&1 
-    tonos call "${FTN_ACCOUNT}" submitTransaction "{\"dest\":\"${account}\",\"value\":\"${NANO}\",\"bounce\":"${isBounce}",\"allBalance\":false,\"payload\":\"$5\"}" --abi "${TON_CFG_DIR}/SafeMultisigWallet.abi.json" --sign "${FTN_KEYS_DIR}/msig.keys.json" 2>&1 | tee -a "$FTN_LOG/$1.log"
 }
 
 
@@ -313,10 +354,8 @@ function recover {
 }
 
 
-function exec {
-    tonos "${@:2}" 2>&1 | tee -a "$FTN_LOG/$1.log"
-}
-
+##########
+# Commands for the ftn_node_list
 
 function timediff {  
     cd "${FTN_DIR}/scripts"
@@ -324,117 +363,15 @@ function timediff {
 }
 
 
-function help {
-    . $FTN_WRP/lib/ftnlibhelp
-    if [ -n "$2" ]; then
-        section=$2
+function adnl { 
+    adnlfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-adnl-key"
+    #keyfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-key"
+    if test -r $adnlfile; then
+        adnl=$(cat "$adnlfile" | grep "created new key")
+        #pubkey=$(cat "${keyfile}" | grep "created new key")
+        #echo -e "adnl: ${adnl:16}\npubkey: ${pubkey:16}"
+        echo -e "adnl: ${adnl:16}"
     else
-        section="overview"
+        echo "$adnlfile file not found."
     fi
-
-    echo "${_help[$section]}"
-}
-
-
-function accounts {
-    cd $FTN_KEYS_DIR
-    echo $(ls *.addr | cut -d. -f1 )
-    cd $OLDPWD
-}
-
-
-function depool {
-    depool_list="@(events|info|participant|tick|stake|replenish|getrounds|help)"
-    if [ -n "$2" ]; then
-        case "$2" in
-        $depool_list) set "$1" "dpl_$2" "${@:3}"; $2 ${@:2};;
-        *) echo "Subcommand $2 not recognized. Please try using \"ftn help depool\".";;
-        esac
-    fi
-}
-
-
-function dpl_help {
-    . $FTN_WRP/lib/ftnlibhelp
-    if [ -n "$2" ]; then
-        section="dpl_$2"
-    else
-        section="depool"
-    fi
-
-    echo "${_help[$section]}"
-}
-
-
-function dpl_info {
-    tonos run "$DPL_ACCOUNT" getDePoolInfo {} --abi "$DPL_CFG_DIR/DePool.abi.json" | tee -a "$FTN_LOG/$1.log"
-}
-
-
-function dpl_getrounds {
-    tonos run "$DPL_ACCOUNT" getRounds {} --abi "$DPL_CFG_DIR/DePool.abi.json" | tee -a "$FTN_LOG/$1.log"
-}
-
-function dpl_participant {
-    get_account $2
-    read -r -d '' PARAMS <<EOF || true
-{"addr":"$account"}
-EOF
-    tonos run "$DPL_ACCOUNT" getParticipantInfo "$PARAMS" --abi "$DPL_CFG_DIR/DePool.abi.json" | tee -a "$FTN_LOG/$1.log"
-}
-
-
-function dpl_events {
-    since_params=''
-    if [ -n "$2" ]; then
-        if [ "$2" == "all" ]; then
-            since_params=""
-        else
-            since_params="--since $2"
-        fi
-    else
-        #getting start time of the current round
-        utime=$(getconfig "getconfig" "34" | grep utime_since | awk '{print $2}' | tr -d ',')
-        since_params="--since $utime"
-    fi
-    tonos depool --addr "$DPL_ACCOUNT" events "$since_params" | tee -a "$FTN_LOG/$1.log"
-}
-
-
-function dpl_tick {
-    tonos depool --addr "$DPL_ACCOUNT" ticktock --wallet "$FTN_ACCOUNT" --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee -a "$FTN_LOG/$1.log"
-}
-
-
-function dpl_replenish {
-    tonos depool --addr "$DPL_ACCOUNT" replenish --value "$2" --wallet "$FTN_ACCOUNT" --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee -a "$FTN_LOG/$1.log"
-}
-
-
-function dpl_stake {
-    stake_list="@(ordinary|remove)"
-    if [ -n "$2" ]; then
-        if [ -z "$3" ]; then
-            echo "$@: Amount is not specified."
-        else
-            case "$2" in
-            $stake_list) set "$1" "$1_$2" "${@:3}"; $2 ${@:2};;
-            *) echo "Subcommand $2 is not recognized. Currently only 'ordinary' and 'remove' subcommands are supported. Stay tuned.";;
-            esac
-        fi
-    else
-        echo "$@: Type is not specified."
-    fi
-}
-
-
-function dpl_stake_ordinary {
-    echo "Making ordinary stake $2"
-    tonos depool --addr "$DPL_ACCOUNT" stake ordinary --wallet "$FTN_ACCOUNT" --value "$2" --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee -a "$FTN_LOG/$1.log"
-}
-
-
-function dpl_stake_remove {
-    echo "Removing ordinary stake $2"
-    tonos depool --addr "$DPL_ACCOUNT" stake remove --wallet "$FTN_ACCOUNT" --value "$2" --sign "$FTN_KEYS_DIR/$DPL_KEY_SIGN" | tee -a "$FTN_LOG/$1.log"
 }

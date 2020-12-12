@@ -1,0 +1,75 @@
+function dpl_help {
+    . $FTN_WRP/lib/ftnlibhelp
+    test $2 && section="dpl_$2" || section="depool"
+    echo "${_help[$section]}"
+}
+
+
+function dpl_info {
+    tonos run $DEPOOL_ACC getDePoolInfo {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+}
+
+
+function dpl_getrounds {
+    tonos run $DEPOOL_ACC getRounds {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+}
+
+function dpl_participant {
+    get_account $2
+    read -r -d '' PARAMS << EOF
+    {"addr":"$account"}
+EOF
+    tonos run $DEPOOL_ACC getParticipantInfo $PARAMS --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+}
+
+
+function dpl_events {
+    since_params=''
+    if [ -n "$2" ]; then
+        test $2 = "all" && since_params="" || since_params="--since $2"
+    else
+        #getting start time of the current round
+        utime=$(getconfig "getconfig" "34" | grep utime_since | awk '{print $2}' | tr -d ',')
+        since_params="--since $utime"
+    fi
+    tonos depool --addr $DEPOOL_ACC events $since_params | tee -a $FTN_LOG/$1.log
+}
+
+
+function dpl_tick {
+    tonos depool --addr $DEPOOL_ACC ticktock --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+}
+
+
+function dpl_replenish {
+    tonos depool --addr $DEPOOL_ACC replenish --value $2 --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+}
+
+
+function dpl_stake {
+    stake_list="@(ordinary|remove)"
+    if [ -n "$2" ]; then
+        if [ -z "$3" ]; then
+            echo "$@: Amount is not specified."
+        else
+            case "$2" in
+            $stake_list) set "$1" "$1_$2" "${@:3}"; $2 ${@:2};;
+            *) echo "Subcommand $2 is not recognized. Currently only 'ordinary' and 'remove' subcommands are supported. Stay tuned.";;
+            esac
+        fi
+    else
+        echo "$@: Type is not specified."
+    fi
+}
+
+
+function dpl_stake_ordinary {
+    echo "Making ordinary stake $2"
+    tonos depool --addr $DEPOOL_ACC stake ordinary --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+}
+
+
+function dpl_stake_remove {
+    echo "Removing ordinary stake $2"
+    tonos depool --addr $DEPOOL_ACC stake remove --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DPL_KEY_SIGN | tee -a $FTN_LOG/$1.log
+}
