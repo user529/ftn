@@ -5,10 +5,10 @@ shopt -s nocasematch
 
 tonos_list="@(convert|balance|transactions|confirm|submit|config|runget|exec|getconfig)"
 ftn_base_list="@(checkrounds|accounts|depool|mode|help)"
-ftn_node_list="@(adnl|timediff)"
+ftn_node_list="@(adnl|timediff|checkstake|checkconn)"
 msig_elector_list="@(electionlog|electionrun|extrastake|setstake|recover)"
 
-ftn_version="0.1.4-rc4"
+ftn_version="0.2"
 
 
 ##########
@@ -43,8 +43,24 @@ function tonos {
     echo "ftnlib.tonos: $@"
     cd $TONOS_CLI_DIR
     test "$TONOS_CFG_FILE" && $TONOS_CLI_DIR/tonos-cli --config $TONOS_CFG_FILE $@ \
-        || $TONOS_CLI_DIR/tonos-cli $@
+      || $TONOS_CLI_DIR/tonos-cli $@
     cd $OLD_PWD
+}
+
+
+function check_keyring {
+    declare List=$1
+    declare Since=$2
+    IsMatched=0
+    while IFS= read -r -d '' filename; do
+        declare -l key=$(echo "${filename#"${filename%%[!0]*}"}")
+        declare -i result=$(echo "$List" | grep -c "$key")
+        if [[ $result -gt 0 ]]; then
+            echo "Matched! (adnl: $key)"
+            IsMatched=$result
+            break
+        fi
+    done < <(find $FTN_DB_DIR/db/keyring/ -cmin "-$Since" -type f -printf "%f\0")
 }
 
 
@@ -59,7 +75,9 @@ function help {
 
 
 function accounts {
-    find $FTN_KEYS_DIR -name *.addr -printf "%f\n" | cut -d. -f1 
+    for alias in $(find $FTN_KEYS_DIR -name *.addr -printf "%f\n" | cut -d. -f1); do
+        echo "account: $(cat $FTN_KEYS_DIR/$alias.addr) (alias: $alias)"
+    done
 }
 
 
@@ -82,7 +100,7 @@ function mode {
 
 function checkrounds {
     . $FTN_WRP/lib/ftnlibdepool
-    num=$(dpl_getrounds "dpl_getrounds" | grep -n "Result:" | awk -F ':' '{print $1}')
+    num=$(dpl_getrounds | grep -n "Result:" | awk -F ':' '{print $1}')
     result="{$( dpl_getrounds | tail +$(($num+1)) )"
     declare -a rounds
     rounds=$(echo "$result" | jq -r '.rounds | .[]? | .id')
@@ -183,6 +201,7 @@ EOD
         tonos call $FTN_ACCOUNT submitTransaction $PARAMS --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json --sign $FTN_KEYS_DIR/$DEFAULT_KEY 2>&1 | tee -a $FTN_LOG/$1.log 
     else
         echo "Error: signature key file not found."
+        exit 1
     fi
 }
 
@@ -362,7 +381,7 @@ function recover {
 # Commands for the ftn_node_list
 
 function timediff {  
-    cd "${FTN_DIR}/scripts"
+    cd "$FTN_DIR/scripts"
     . ./check_node_sync_status.sh | grep "TIME_DIFF" | awk '{print $4}' 2>&1
 }
 
@@ -378,4 +397,65 @@ function adnl {
     else
         echo "$adnlfile file not found."
     fi
+}
+
+function checkstake {
+    #getconfig 32 -- prev cycle
+    #getconfig 34 -- current cycle
+    #getconfig 36 -- next cycle. Exists only if elections are over and the new cycle is not started yet.
+    #runget $ELECTOR_ADDR participant_list_extended -- in case the elections are open
+
+    getconfig32=$(ftn getconfig 32)
+    getconfig34=$(ftn getconfig 34)
+
+    declare -i posixtime=$(date +%s)
+    prev_since=$(echo "$getconfig32" | grep utime_since | tr -d ',"' | awk '{print $2}')
+    curr_since=$(echo "$getconfig34" | grep utime_since | tr -d ',"' | awk '{print $2}')
+    prev_min_ago=$(awk "BEGIN {print ($posixtime-$prev_since)/60}")
+    curr_min_ago=$(awk "BEGIN {print ($posixtime-$curr_since)/60}")
+
+    echo "system time: $posixtime | $(date -d@$posixtime)"
+    echo "Previous cycle from $prev_since. Started $prev_min_ago min ago"
+    echo "Current cycle from $curr_since. Started $curr_min_ago min ago"
+
+    declare active_election=$(ftn runget active_election_id | grep "Result:" | tr -d '[]",' | awk '{ print substr($2,3) }')
+    echo "active election id: $active_election"
+
+    declare -i code=0
+    if [ "$active_election" = "0" ]; then
+        echo "No active elections. Let's check if we are validating the current cycle."
+        check_keyring "$getconfig34" "$prev_min_ago"
+        test $IsMatched -gt 0 && echo "OK. We are validatating this cycle." || {
+            echo "Not OK. We are not in the list of the validators for the current cycle."
+            code=1
+        }
+        end_offset=$(ftn getconfig 15 | grep elections_end_before | awk '{print $2}' | tr -d ,)
+        curr_until=$(echo "$getconfig34" | grep utime_until | tr -d ',"' | awk '{print $2}')
+        elections_end=$((curr_until-end_offset))
+        if [[ $posixtime -gt $elections_end ]]; then
+            echo "Elections for the next cycle are over. Checking if we are in the list for the next cycle."
+            getconfig36=$(ftn getconfig 36)
+            check_keyring "$getconfig36" "$prev_min_ago"
+            test $IsMatched -gt 0 && echo "OK. We will validate the next cycle." || {
+                echo "Not OK. We are not in the list of the validators for the next cycle."
+                code=1
+            }
+        fi
+    else
+        echo "Elections are opened ($active_election). Checking whether the node has sent a stake for the next cycle."
+        pList=$(ftn runget participant_list_extended)
+        check_keyring "$pList" "$curr_min_ago"
+        test $IsMatched -gt 0 && echo "OK. The node has sent a stake." || {
+            echo "Not OK. The node has not sent the stake for the next cycle yet."
+            code=1
+        }
+    fi
+    exit $code
+}
+
+function checkconn {
+    PARMS="-t 5 -a 127.0.0.1:3030 -k $FTN_KEYS_DIR/client -p $FTN_KEYS_DIR/server.pub"
+    CMD="-c quit"
+    date | tee -a $FTN_LOG/$1.log
+    $FTN_DIR/ton/build/validator-engine-console/validator-engine-console $PARMS $CMD | tee -a $FTN_LOG/$1.log || exit 1
 }

@@ -15,11 +15,13 @@ In 'tonos' mode you can use with the following commands:
     convert - converts an amount to nanotockens
     submit - submits tokens to an account
     checkrounds - checks if the stake has been sent 
-    mode - displays the current mode
+    mode - displays the current mode of the ftn wrapper.
     help - displays this page
 In 'validator' mode you can additionally use with the following commands:
     adnl - shows the current adnl of the FreeTON node
     timediff - shows how far your node is lagging behind the network
+    checkstake - checks if the node has send the stake
+    checkconn - checks if the node is alive and working
     electionrun - send the stake to the elections
     recover - recovers the unlocked tockens. It only works if elections are open.
     electionlog - shows the last N lines from the log of the \"electionrun\" command
@@ -30,6 +32,9 @@ Check \"ftn help [sub-command]\" for additional help.
 In most cases, the logs of these sub-commands can be found in the FTN_LOG directory. 
 By default FTN_LOG=/var/log/ftn.
 "
+
+##########
+# Commands for the ftn_base_list
 
 _help["help"]="\
 I have nothing more to say here.
@@ -43,15 +48,6 @@ Description:
     and displays the current mode the ftn wrapper can be used.
 "
 
-_help["balance"]="\
-Usage:
-    ftn balance [ACCOUNT or SYNONYM]
-Description:
-    Shows account balance of the [account_number].
-    ACCOUNT is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
-    SYNONYM is optional. The list of possible synonyms can be displayed by the accounts subcommand.
-"
-
 _help["accounts"]="\
 Usage:
     ftn accounts
@@ -60,162 +56,11 @@ Description:
     Each name of account synonym is FTN_KEYS_DIR/(synonym_name).addr file
 "
 
-_help["adnl"]="\
-Usage:
-    ftn andl
-Description:
-    Shows the current adnl from the following file:
-        {keys_dir}/(hostname)-election-adnl-key
-"
-
 _help["checkrounds"]="\
 Usage:
     ftn checkrounds
 Description:
     Displays information about the previous and the current rounds in a readable format.
-"
-
-
-_help["config"]="\
-Usage:
-    ftn config [flags] [options]
-Description:
-    The same as \"tonos-cli config [flags] [options]\".
-    Use \"ftn config -h\" to display th tonos-cli help.
-"
-
-_help["getconfig"]="\
-Usage:
-    ftn getconfig <INDEX>
-Description:
-    The same as \"tonos-cli getconfig <INDEX>\".
-    INDEX is parameter index.
-    Use \"ftn getconfig -h\" to display the tonos-cli help.
-"
-
-_help["runget"]="\
-Usage:
-    ftn runget <METHOD> [PARAMS]
-Description:
-    The same as \"tonos-cli runget <MSIG ADDR> <METHOD> [PARAMS]\".
-    MSIG ADDR - Elector contract address (-1:3333...333).
-    METHOD - Name of the calling method.
-    PARAMS... Arguments for the contract method
-"
-
-_help["convert"]="\
-Usage:
-    ftn convert <AMOUNT>
-Description:
-    In fact, it's an analog of \"tonos-cli convert tokens <AMOUNT>\".
-    Converts the amount to nanotockens (1 -> 10^9) and truncates the leading zeroes, if any.
-"
-
-_help["electionlog"]="\
-Usage:
-    ftn electionlog [option]
-Description:
-    Shows INFO-messages from the last N lines of the \"electionrun\" log.
-    Possible values for [option] is N or 'all'. Default option N=14 (i.e. \"ftn electionlog 14\").
-    N is the option to set the number of the last lines to lookup for INFO-messages. By default, N=14.
-    'all' is the option to display all messages, instead of INFO-messages. And it shows last 30 lines of the \"electionrun\" log.
-"
-
-_help["electionrun"]="\
-Usage:
-    ftn electionrun [STAKE]
-Description:
-    In fact, this is a wrapper for running validator_msig.sh script.
-    It takes care of the correct directory from which the validator_msig.sh script runs. 
-    Therefore it can be launched from anywhere.
-
-    STAKE is optional parameter. If ommited, uses the stake amount set by \"ftn setstake [stake]\".
-    If the stake is not set it exits with the error.
-"
-
-_help["extrastake"]="\
-Usage:
-    ftn extrastake <STAKE>
-Description:
-    Allows to sends an additional stake during the active elections.
-    It reuses Elector address and Payload parameters used by 'electionrun' subcommand or the standard script.
-    In contrast to 'electionrun' the size of stake is mandatory parameter.
-"
-
-_help["setstake"]="\
-Usage:
-    ftn setstake [STAKE]
-Description:
-    Sets the stake to be used by the \"electionrun\".
-    It also applies additional checks for the given stake:
-    1.  if stake > balance then 
-            stake=balance-1 #you can't send more than you have)
-    2.  if stake < min_stake then 
-            stake=0 #the amount on the balance is not enough and there is no point in sending any stake
-
-    To be done: if the stake is ommited, calculate the average stake for the current round and set it as the stake
-"
-
-_help["transactions"]="\
-Usage:
-    ftn transactions
-Description:
-    Displays awaiting transactions on the account from the FTN_KEYS_DIR/(hostname).addr file
-"
-
-_help["confirm"]="\
-Usage:
-    ftn confirm <KEY> [TransactionID]
-Description:
-    Confirm transactions awaiting confirmations. 
-    KEY is mandatory parameter. This is a file name like name.keys.json. 
-            Please maky sure the key is located in FTN_KEYS_DIR.
-            Pay attention that msig.keys.json must not be used!
-    TransactionID is ID of awaiting transaction.
-            If omited, all awaiting transactions will be confirmed one by one.
-"
-
-
-_help["submit"]="\
-Usage:
-    ftn submit <ACCOUNT or SYNONYM> <AMOUNT> [BOUNCE] [PAYLOAD]
-Description:
-    Submits tokens to an account.
-    ACCOUNT number of target account. This is mandatory paramter. 
-            Must be full number \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
-    SYNONYM the name of account synonym. Please see the accounts subcommand for more info.
-    AMOUNT is number of tokens you want to send. This is mandatory paramter. 
-            Please not it must be a number of tokens but not nanotokens. 
-            Number of tokens will be converted to nanotockens by \"ftn convert\" automatically
-    BOUNCE can be true or false. 'true' is default value. Not case sensitive.
-    PAYLOAD is payload block. Empty by default.
-    There are a few not configurable parameters:
-    abi is the file: \"FTN_DIR/config/SafeMultisigWallet.abi.json\" 
-    sign is the keyfile: \"FTN_KEYS_DIR/msig.keys.json\"
-"
-
-_help["recover"]="\
-Usage:
-    ftn recover [ATTEMPTS]
-Description:
-    Sends a request to check if the unlocked amount is available. And fetches if any.
-    ATTEMPTS set the number of tries to fetch the amount. By default ATTEMPTS=1.
-"
-
-_help["timediff"]="\
-Usage:
-    ftn timediff
-Description:
-    Runs the check_node_sync_status.sh script and returns the number of seconds between the current time and the time of the last known masterblock.
-"
-
-
-_help["exec"]="\
-Usage:
-    ftn exec <SUBCOMMAND>
-Description:
-    Runs the passed <subcommand> using the tonos-cli.
-    Is an analog of tonos-cli <SUBCOMMAND>.
 "
 
 _help["depool"]="\
@@ -229,8 +74,10 @@ Description:
         participant
         replenish
         stake (ordinary or remove)
-
 "
+
+##########
+# depool-based commands
 
 _help["dpl_info"]="\
 Usage:
@@ -279,10 +126,191 @@ Description:
     AMOUNT - is the number of tokens.
 "
 
-
 _help["dpl_getrounds"]="\
 Usage:
     ftn depool getrounds 
 Description:
     Runs 'getRounds' command in the DePool and displays the result.
+"
+
+##########
+# Commands for the tonos_list
+
+_help["balance"]="\
+Usage:
+    ftn balance [ACCOUNT or SYNONYM]
+Description:
+    Shows account balance of the [account_number].
+    ACCOUNT is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
+    SYNONYM is optional. The list of possible synonyms can be displayed by the accounts subcommand.
+"
+
+_help["config"]="\
+Usage:
+    ftn config [flags] [options]
+Description:
+    The same as \"tonos-cli config [flags] [options]\".
+    Use \"ftn config -h\" to display th tonos-cli help.
+"
+
+_help["getconfig"]="\
+Usage:
+    ftn getconfig <INDEX>
+Description:
+    The same as \"tonos-cli getconfig <INDEX>\".
+    INDEX is parameter index.
+    Use \"ftn getconfig -h\" to display the tonos-cli help.
+"
+
+_help["runget"]="\
+Usage:
+    ftn runget <METHOD> [PARAMS]
+Description:
+    The same as \"tonos-cli runget <MSIG ADDR> <METHOD> [PARAMS]\".
+    MSIG ADDR - Elector contract address (-1:3333...333).
+    METHOD - Name of the calling method.
+    PARAMS... Arguments for the contract method
+"
+
+_help["convert"]="\
+Usage:
+    ftn convert <AMOUNT>
+Description:
+    In fact, it's an analog of \"tonos-cli convert tokens <AMOUNT>\".
+    Converts the amount to nanotockens (1 -> 10^9) and truncates the leading zeroes, if any.
+"
+
+_help["transactions"]="\
+Usage:
+    ftn transactions
+Description:
+    Displays awaiting transactions on the account from the FTN_KEYS_DIR/(hostname).addr file
+"
+
+_help["confirm"]="\
+Usage:
+    ftn confirm <KEY> [TransactionID]
+Description:
+    Confirm transactions awaiting confirmations. 
+    KEY is mandatory parameter. This is a file name like name.keys.json. 
+            Please maky sure the key is located in FTN_KEYS_DIR.
+            Pay attention that msig.keys.json must not be used!
+    TransactionID is ID of awaiting transaction.
+            If omited, all awaiting transactions will be confirmed one by one.
+"
+
+_help["submit"]="\
+Usage:
+    ftn submit <ACCOUNT or SYNONYM> <AMOUNT> [BOUNCE] [PAYLOAD]
+Description:
+    Submits tokens to an account.
+    ACCOUNT number of target account. This is mandatory paramter. 
+            Must be full number \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
+    SYNONYM the name of account synonym. Please see the accounts subcommand for more info.
+    AMOUNT is number of tokens you want to send. This is mandatory paramter. 
+            Please not it must be a number of tokens but not nanotokens. 
+            Number of tokens will be converted to nanotockens by \"ftn convert\" automatically
+    BOUNCE can be true or false. 'true' is default value. Not case sensitive.
+    PAYLOAD is payload block. Empty by default.
+    There are a few not configurable parameters:
+    abi is the file: \"FTN_DIR/config/SafeMultisigWallet.abi.json\" 
+    sign is the keyfile: \"FTN_KEYS_DIR/msig.keys.json\"
+"
+
+_help["exec"]="\
+Usage:
+    ftn exec <SUBCOMMAND>
+Description:
+    Runs the passed <subcommand> using the tonos-cli.
+    Is an analog of tonos-cli <SUBCOMMAND>.
+"
+
+##########
+# Commands for the msig_elector_list
+
+_help["electionlog"]="\
+Usage:
+    ftn electionlog [option]
+Description:
+    Shows INFO-messages from the last N lines of the \"electionrun\" log.
+    Possible values for [option] is N or 'all'. Default option N=14 (i.e. \"ftn electionlog 14\").
+    N is the option to set the number of the last lines to lookup for INFO-messages. By default, N=14.
+    'all' is the option to display all messages, instead of INFO-messages. And it shows last 30 lines of the \"electionrun\" log.
+"
+
+_help["electionrun"]="\
+Usage:
+    ftn electionrun [STAKE]
+Description:
+    In fact, this is a wrapper for running validator_msig.sh script.
+    It takes care of the correct directory from which the validator_msig.sh script runs. 
+    Therefore it can be launched from anywhere.
+
+    STAKE is optional parameter. If ommited, uses the stake amount set by \"ftn setstake [stake]\".
+    If the stake is not set it exits with the error.
+"
+
+_help["extrastake"]="\
+Usage:
+    ftn extrastake <STAKE>
+Description:
+    Allows to sends an additional stake during the active elections.
+    It reuses Elector address and Payload parameters used by 'electionrun' subcommand or the standard script.
+    In contrast to 'electionrun' the size of stake is mandatory parameter.
+"
+
+_help["setstake"]="\
+Usage:
+    ftn setstake [STAKE]
+Description:
+    Sets the stake to be used by the \"electionrun\".
+    It also applies additional checks for the given stake:
+    1.  if stake > balance then 
+            stake=balance-1 #you can't send more than you have)
+    2.  if stake < min_stake then 
+            stake=0 #the amount on the balance is not enough and there is no point in sending any stake
+
+    To be done: if the stake is ommited, calculate the average stake for the current round and set it as the stake
+"
+
+_help["recover"]="\
+Usage:
+    ftn recover [ATTEMPTS]
+Description:
+    Sends a request to check if the unlocked amount is available. And fetches if any.
+    ATTEMPTS set the number of tries to fetch the amount. By default ATTEMPTS=1.
+"
+
+##########
+# Commands for the ftn_node_list
+
+_help["adnl"]="\
+Usage:
+    ftn andl
+Description:
+    Shows the current adnl from the following file:
+        {keys_dir}/(hostname)-election-adnl-key
+"
+
+_help["timediff"]="\
+Usage:
+    ftn timediff
+Description:
+    Runs the check_node_sync_status.sh script and returns the number of seconds between the current time and the time of the last known masterblock.
+"
+
+_help["checkstake"]="\
+Usage:
+    ftn checkstake
+Description:
+    First checks whether elections are opened and:
+    If elections are open, then it is verified that the node has sent a stake.
+    Owerwise, check if the node is in the list of the validators.
+"
+
+_help["checkconn"]="\
+Usage:
+    ftn checkconn
+Description:
+    Checks connection to the node. If failed, it means that the node is not working.
 "

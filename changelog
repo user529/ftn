@@ -1,3 +1,8 @@
+ftn 0.2
+    * Output of the 'accounts' subcommand has been beautified.
+    * The 'checkstake' subcommand has been introduced (works in validator mode only).
+    * The 'checkconn' subcommand has been introduced (works in validator mode only).
+
 ftn 0.1.4-rc4
     * Fixed an error in checking the list of available subcommands.
 
