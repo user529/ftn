@@ -8,7 +8,7 @@ ftn_base_list="@(checkrounds|accounts|depool|mode|help)"
 ftn_node_list="@(adnl|timediff|checkstake|checkconn)"
 msig_elector_list="@(electionlog|electionrun|extrastake|setstake|recover)"
 
-ftn_version="0.2"
+ftn_version="0.2.1"
 
 
 ##########
@@ -454,8 +454,13 @@ function checkstake {
 }
 
 function checkconn {
-    PARMS="-t 5 -a 127.0.0.1:3030 -k $FTN_KEYS_DIR/client -p $FTN_KEYS_DIR/server.pub"
-    CMD="-c quit"
+    declare - code=0
+    declare -r PARMS="-t 5 -a 127.0.0.1:3030 -k $FTN_KEYS_DIR/client -p $FTN_KEYS_DIR/server.pub"
+    declare -r CMD="-c quit"
     date | tee -a $FTN_LOG/$1.log
-    $FTN_DIR/ton/build/validator-engine-console/validator-engine-console $PARMS $CMD | tee -a $FTN_LOG/$1.log || exit 1
+    declare -r conn=$($FTN_DIR/ton/build/validator-engine-console/validator-engine-console $PARMS $CMD | tee -a $FTN_LOG/$1.log)
+    declare -r status=$(echo -e "$conn" | tail -1 | grep conn | awk '{print $2}')
+    echo "$conn" 
+    test $status = "failed" && code=1
+    exit $code
 }

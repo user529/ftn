@@ -1,3 +1,6 @@
+ftn 0.2.1
+    * Fixed wrong exit code in the 'checkconn' subcommand, if the connection failed.
+
 ftn 0.2
     * Output of the 'accounts' subcommand has been beautified.
     * The 'checkstake' subcommand has been introduced (works in validator mode only).
