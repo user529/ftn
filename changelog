@@ -1,3 +1,6 @@
+ftn 0.2.2
+    * Fixed using the wrong user in the node mode check.
+
 ftn 0.2.1
     * Fixed wrong exit code in the 'checkconn' subcommand, if the connection failed.
 
