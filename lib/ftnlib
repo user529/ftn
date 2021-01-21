@@ -8,7 +8,7 @@ ftn_base_list="@(checkrounds|accounts|depool|mode|help)"
 ftn_node_list="@(adnl|timediff|checkstake|checkconn)"
 msig_elector_list="@(electionlog|electionrun|extrastake|setstake|recover)"
 
-ftn_version="0.2.2"
+ftn_version="0.2.3"
 
 
 ##########
@@ -34,7 +34,7 @@ function version {
 
 
 function get_mode {
-    test $(ps -u $(whoami) -o command | grep validator-engine | grep -cv grep) -gt 0 && mode="validator" || mode="tonos"
+    test $(ps -u $(whoami) -o command | grep -v grep | grep -c validator-engine) -gt 0 && mode="validator" || mode="tonos"
 }
 
 
@@ -45,6 +45,15 @@ function tonos {
     test "$TONOS_CFG_FILE" && $TONOS_CLI_DIR/tonos-cli --config $TONOS_CFG_FILE $@ \
       || $TONOS_CLI_DIR/tonos-cli $@
     cd $OLD_PWD
+}
+
+
+function tonos2j {
+    declare _cmd=$@
+    declare _tonos_output=$(tonos $_cmd)
+    declare _num=$(echo -e "$_tonos_output" | grep -n "Result:" | awk -F ':' '{print $1}')
+    declare _cropped_output=$(echo "$_tonos_output" | tail +$(($_num+1)) )
+    echo "{$_cropped_output"
 }
 
 
@@ -75,7 +84,7 @@ function help {
 
 
 function accounts {
-    for alias in $(find $FTN_KEYS_DIR -name *.addr -printf "%f\n" | cut -d. -f1); do
+    for alias in $(find $FTN_KEYS_DIR -name '*.addr' -printf "%f\n" | cut -d. -f1); do
         echo "account: $(cat $FTN_KEYS_DIR/$alias.addr) (alias: $alias)"
     done
 }
@@ -100,10 +109,9 @@ function mode {
 
 function checkrounds {
     . $FTN_WRP/lib/ftnlibdepool
-    num=$(dpl_getrounds | grep -n "Result:" | awk -F ':' '{print $1}')
-    result="{$( dpl_getrounds | tail +$(($num+1)) )"
+    result="$(dpl_getrounds)"
     declare -a rounds
-    rounds=$(echo "$result" | jq -r '.rounds | .[]? | .id')
+    rounds=$(echo "$result" | jq -r '.rounds[]?.id')
     nano=$((10**9))
     . $FTN_WRP/lib/ftnlibdcodes
     for round in $rounds; do 
@@ -153,15 +161,23 @@ function convert {
 
 function balance { 
     get_account $2
-    result=$(tonos account "$account" | tee -a $FTN_LOG/$1.log)
-    acc=$(echo "$result" | grep "address:" | awk -F':' '{printf ("address %s:%s", $2, $3)}')
-    bal=$(echo "$result" | grep "balance:" | awk -F':' '{printf ("balance %g", $2/1000000000)}')
-    echo -e "$acc\n$bal"
+    declare -r result=$(tonos account "$account" | tee -a $FTN_LOG/$1.log)
+    declare -r address=$(echo "$result" | grep address | awk '{print $2}')
+    declare -r balance=$(echo "$result" | grep balance | awk '{print $2/1000000000}')
+    declare -r state=$(echo "$result" | grep acc_type | awk '{print $2}')
+    declare -r last_paid=$(echo "$result" | grep last_paid | awk '{print $2}' | xargs -I % date -d@%)
+    echo -e "\
+    address:    $address
+    status:     $state
+    balance:    $balance
+    previous transaction: $last_paid\
+    "
 }
 
 
 function transactions { 
-    tonos run $FTN_ACCOUNT getTransactions {} --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json 2>&1 | tee -a $FTN_LOG/$1.log
+    get_account $2
+    tonos2j run $account getTransactions {} --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json 2>&1 | tee -a $FTN_LOG/$1.log
 }
 
 

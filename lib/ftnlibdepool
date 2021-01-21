@@ -6,12 +6,12 @@ function dpl_help {
 
 
 function dpl_info {
-    tonos run $DEPOOL_ACC getDePoolInfo {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+    tonos2j run $DEPOOL_ACC getDePoolInfo {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
 }
 
 
 function dpl_getrounds {
-    tonos run $DEPOOL_ACC getRounds {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+    tonos2j run $DEPOOL_ACC getRounds {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
 }
 
 function dpl_participant {
@@ -19,7 +19,7 @@ function dpl_participant {
     read -r -d '' PARAMS << EOD || true
     {"addr":"$account"}
 EOD
-    tonos run $DEPOOL_ACC getParticipantInfo $PARAMS --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+    tonos2j run $DEPOOL_ACC getParticipantInfo $PARAMS --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
 }
 
 

@@ -142,7 +142,7 @@ Usage:
 Description:
     Shows account balance of the [account_number].
     ACCOUNT is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
-    SYNONYM is optional. The list of possible synonyms can be displayed by the accounts subcommand.
+    SYNONYM is optional. The list of possible synonyms can be displayed by the 'accounts' subcommand.
 "
 
 _help["config"]="\
@@ -182,9 +182,11 @@ Description:
 
 _help["transactions"]="\
 Usage:
-    ftn transactions
+    ftn transactions [ACCOUNT or SYNONYM]
 Description:
-    Displays awaiting transactions on the account from the FTN_KEYS_DIR/(hostname).addr file
+    Displays awaiting transactions on the account 
+    ACCOUNT is optional. If omitted, the account from the FTN_KEYS_DIR/(hostname).addr file is used.
+    SYNONYM is optional. The list of possible synonyms can be displayed by the 'accounts' subcommand.
 "
 
 _help["confirm"]="\

@@ -1,3 +1,14 @@
+ftn 0.2.3
+    * Output of the 'balance' subcommand has been beautified.
+    * Slight improvement in checking the node's operating mode.
+    * Fixed 'account' subcommand.
+    * Output of 'transactions' subcommand has been JSONized. 
+    * 'transactions' subcommand can accept arbitrary address to check awaiting transactions.
+    * Output for the following depool subcommands has been JSONized:
+        depool info 
+        depool participant
+        depool getrounds
+
 ftn 0.2.2
     * Fixed using the wrong user in the node mode check.
 
