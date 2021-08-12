@@ -75,8 +75,9 @@ Description:
         help [depool subcommand]
         info
         participant
+        participants
         replenish
-        stake (ordinary or remove)
+        stake (ordinary, remove or withdraw)
 "
 
 ##########
@@ -237,8 +238,8 @@ _help["exec"]="\
 Usage:
     ftn exec <SUBCOMMAND>
 Description:
-    Runs the passed <subcommand> using the tonos-cli.
-    Is an analog of tonos-cli <SUBCOMMAND>.
+    Run the passed <subcommand> using the tonos-cli.
+    This work like tonos-cli <SUBCOMMAND>.
 "
 
 ##########
