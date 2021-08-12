@@ -46,6 +46,9 @@ Usage:
 Description:
     Checks if the FreeTON validator node is working on the machine 
     and displays the current mode the ftn wrapper can be used.
+        cnode - c-node
+        rnode - rust-node
+        tonos - node is not running, alowed to use tonos-cli commands only
 "
 
 _help["accounts"]="\
@@ -83,14 +86,14 @@ _help["dpl_info"]="\
 Usage:
     ftn depool info
 Description:
-    Run 'getDePoolInfo' to the DePool and disply the result.
+    Run 'getDePoolInfo' to the DePool and display the result.
 "
 
 _help["dpl_events"]="\
 Usage:
     ftn depool events [SINCE | all]
 Description:
-    Run 'events' to the DePool and disply the result.
+    Run 'events' to the DePool and display the result.
     SINCE - Unixtime format. This is the time from which events should be fetched. If omited, the start time of the current round will be used.
     all - allows to fetch events for the all time. Usage: 'ftn depool events all'
 "
@@ -99,7 +102,7 @@ _help["dpl_participant"]="\
 Usage:
     ftn depool participant [ACCOUNT or SYNONYM]
 Description:
-    Run 'getParticipantInfo' to the DePool and disply the result.
+    Run 'getParticipantInfo' to the DePool and display the result.
     It uses DPL_ACCOUNT as the DePool account.
     ACCOUNT number of target account. Must be full number
          \"-1:abcde01234...9z\" or \"0:01234abcde...z9\"
@@ -107,15 +110,26 @@ Description:
     If the ACCOUNT or SYNONYM omited, then FTN_ACCOUNT from the ftn.conf will be used as participant addresses for the informations request.
 "
 
+_help["dpl_participants"]="\
+Usage:
+    ftn depool participants
+Description:
+    Run 'getParticipants' to the DePool and display the result.
+"
+
+
 _help["dpl_stake"]="\
 Usage:
     ftn depool stake <TYPE> <AMOUNT>
 Description:
     Allows to manage depool stakes.
     TYPE - the following types are supported:
-        ordinary - sends the ordinary stake on behalf of the FTN_ACCOUNT for the next round.
-        remove - reduces the ordinary stake has been sent on behalf of the FTN_ACCOUNT for the next round.
+        ordinary - send the ordinary stake on behalf of the FTN_ACCOUNT for the current pooling round.
+        remove - reduce the ordinary stake has been sent on behalf of the FTN_ACCOUNT for the currnt pooling round.
+        withdraw - withdraw the stake once as soon as it will be unlocked.
     AMOUNT - is the number of tokens.
+        all - can be used instead of AMOUNT with only 'withdraw' type.
+        
 "
 
 _help["dpl_replenish"]="\

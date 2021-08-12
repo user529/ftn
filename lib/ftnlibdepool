@@ -22,6 +22,10 @@ EOD
     tonos2j run $DEPOOL_ACC getParticipantInfo $PARAMS --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
 }
 
+function dpl_participants {
+    tonos2j run $DEPOOL_ACC getParticipants {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+}
+
 
 function dpl_events {
     since_params=''
@@ -47,7 +51,7 @@ function dpl_replenish {
 
 
 function dpl_stake {
-    stake_list="@(ordinary|remove)"
+    stake_list="@(ordinary|remove|withdraw)"
     if [ -n "$2" ]; then
         if [ -z "$3" ]; then
             echo "$@: Amount is not specified."
@@ -72,4 +76,19 @@ function dpl_stake_ordinary {
 function dpl_stake_remove {
     echo "Removing ordinary stake $2"
     tonos depool --addr $DEPOOL_ACC stake remove --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+}
+
+function dpl_stake_withdraw {
+    
+    if [ -z "$2" ]; then
+        echo "The last parameter is not specified. Please check 'ftn depool help stake'"
+    else
+        if [ "$2" == "all" ]
+            echo "Withdrawing $2 ordinary stake"
+            tonos depool --addr $DEPOOL_ACC withdraw on --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+        else
+            echo "Withdrawing part of ordinary stake $2"
+            tonos depool --addr $DEPOOL_ACC stake withdrawPart --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+        fi
+    fi
 }

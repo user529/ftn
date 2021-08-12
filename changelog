@@ -1,3 +1,11 @@
+ftn 0.2.4-test
+    * Aligned with tonos-cli output format with 0.3 and higher versions. Please note that tonos-cli output for versions 0.2 and lower are no longer supported.
+    * Renamed output of 'mode' subcommand.
+    * Supported 'depool participants' subcommand.
+    * Supported 'depool stake withdraw' subcommand.
+    * Minor fixes.
+    * Fixed varios typos in the subcommand description.
+
 ftn 0.2.3
     * Output of the 'balance' subcommand has been beautified.
     * Slight improvement in checking the node's operating mode.

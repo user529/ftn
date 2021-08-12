@@ -5,11 +5,12 @@
 . $FTN_WRP/lib/ftnlib
 
 test $1 &&
+    get_mode
     case "$1" in
     $tonos_list) $1 ${@:1};;
     $ftn_base_list) $1 ${@:1};;
-    $ftn_node_list) get_mode; test "$mode" = "validator" && $1 ${@:1} || echo "Command is not supported in '$mode' mode";;
-    $msig_elector_list) get_mode; test "$mode" = "validator" && $1 ${@:1} || echo "Command is not supported in '$mode' mode";;
+    $ftn_node_list) test $(echo "$mode" | grep  -c 'node') -gt 0 && $1 ${@:1} || echo "Command is not supported in '$mode' mode";;
+    $msig_elector_list) test $(echo "$mode" | grep  -c 'node') -gt 0 && $1 ${@:1} || echo "Command is not supported in '$mode' mode";;
     "--version") version;;
     *) echo "Command $1 not recognized. Please try using \"ftn help\".";;
     esac

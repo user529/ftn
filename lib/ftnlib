@@ -8,7 +8,7 @@ ftn_base_list="@(checkrounds|accounts|depool|mode|help)"
 ftn_node_list="@(adnl|timediff|checkstake|checkconn)"
 msig_elector_list="@(electionlog|electionrun|extrastake|setstake|recover)"
 
-ftn_version="0.2.3"
+ftn_version="0.2.4-tes"
 
 
 ##########
@@ -34,7 +34,13 @@ function version {
 
 
 function get_mode {
-    test $(ps -u $(whoami) -o command | grep -v grep | grep -c validator-engine) -gt 0 && mode="validator" || mode="tonos"
+    if [[ $(ps -u $(whoami) -o command | grep -v grep | grep -c validator-engine) -gt 0 ]]; then
+        mode="cnode"
+    elif [[ $(ps -u $(whoami) -o command | grep -v grep | grep -c ton_node) -gt 0 ]]; then
+        mode="rnode"
+    else
+        mode="tonos"
+    fi
 }
 
 
@@ -42,8 +48,9 @@ function tonos {
     date
     echo "ftnlib.tonos: $@"
     cd $TONOS_CLI_DIR
-    test "$TONOS_CFG_FILE" && $TONOS_CLI_DIR/tonos-cli --config $TONOS_CFG_FILE $@ \
-      || $TONOS_CLI_DIR/tonos-cli $@
+    test "$TONOS_CFG_FILE" \
+        && $TONOS_CLI_DIR/tonos-cli --config $TONOS_CFG_FILE $@ \
+        || $TONOS_CLI_DIR/tonos-cli $@
     cd $OLD_PWD
 }
 
@@ -53,7 +60,7 @@ function tonos2j {
     declare _tonos_output=$(tonos $_cmd)
     declare _num=$(echo -e "$_tonos_output" | grep -n "Result:" | awk -F ':' '{print $1}')
     declare _cropped_output=$(echo "$_tonos_output" | tail +$(($_num+1)) )
-    echo "{$_cropped_output"
+    test "$_cropped_output" && echo "{$_cropped_output" || echo "{}"
 }
 
 
@@ -92,7 +99,7 @@ function accounts {
 
 function depool {
     . $FTN_WRP/lib/ftnlibdepool
-    depool_list="@(events|info|participant|tick|stake|replenish|getrounds|help)"
+    depool_list="@(events|info|participant|participants|tick|stake|replenish|getrounds|help)"
     test $2 &&
         case "$2" in
         $depool_list) set "$1" "dpl_$2" "${@:3}"; $2 ${@:2};;
@@ -111,25 +118,24 @@ function checkrounds {
     . $FTN_WRP/lib/ftnlibdepool
     result="$(dpl_getrounds)"
     declare -a rounds
-    rounds=$(echo "$result" | jq -r '.rounds[]?.id')
+    rounds=$(echo "$result" | jq -r '.rounds[]?.id' | sort)
     nano=$((10**9))
     . $FTN_WRP/lib/ftnlibdcodes
     for round in $rounds; do 
-        reason=$(echo "$result" | jq -r '.rounds | ."'$round'" | .completionReason')
-        step=$(echo "$result" | jq -r '.rounds | ."'$round'" | .step')
-        f_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .stake')
-        v_stake=$(echo "$result" | jq -r '.rounds | ."'$round'" | .validatorStake')
-        reward=$(echo "$result" | jq -r '.rounds | ."'$round'" | .rewards')
-        n=$(echo "$result" | jq -r '.rounds | ."'$round'" | .participantQty')
-        hash=$(echo "$result" | jq -r '.rounds | ."'$round'" | .vsetHashInElectionPhase')
+        reason=$(echo "$result" | jq -r '.rounds."'$round'".completionReason' | tr -d '[:punct:][:blank:]')
+        step=$(echo "$result" | jq -r '.rounds."'$round'".step' | tr -d '[:punct:][:blank:]')
+        f_stake=$(echo "$result" | jq -r '.rounds."'$round'".stake' | tr -d '[:punct:][:blank:]')
+        v_stake=$(echo "$result" | jq -r '.rounds."'$round'".validatorStake' | tr -d '[:punct:][:blank:]')
+        reward=$(echo "$result" | jq -r '.rounds."'$round'".rewards' | tr -d '[:punct:][:blank:]')
+        n=$(echo "$result" | jq -r '.rounds."'$round'".participantQty' | tr -d '[:punct:][:blank:]')
+        hash=$(echo "$result" | jq -r '.rounds."'$round'".vsetHashInElectionPhase')
         echo -e "roundID $round 
-        reason:          $((16#${reason:2})) ($reason ${_dcode_reason[$reason]})
-        step:            $((16#${step:2})) ($step ${_dcode_step[$step]})
-        full stake:      $((16#${f_stake:2}/$nano)) ($f_stake)
-        validaror stake: $((16#${v_stake:2}/$nano)) ($v_stake)
-        participants:    $((16#${n:2})) ($n)
-        reward:          $((16#${reward:2})) ($reward)
-        hash:            $hash
+        reason:          ${reason} (${_dcode_reason[$reason]})
+        step:            ${step} (${_dcode_step[$step]})
+        full stake:      $((${f_stake}/$nano)) ($f_stake)
+        validaror stake: $((${v_stake}/$nano)) ($v_stake)
+        participants:    ${n} 
+        reward:          ${reward} 
         "
     done
 }
@@ -396,13 +402,13 @@ function recover {
 ##########
 # Commands for the ftn_node_list
 
-function timediff {  
+function timediff {
     cd "$FTN_DIR/scripts"
     . ./check_node_sync_status.sh | grep "TIME_DIFF" | awk '{print $4}' 2>&1
 }
 
 
-function adnl { 
+function adnl {
     adnlfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-adnl-key"
     #keyfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-key"
     if test -r $adnlfile; then
@@ -434,7 +440,7 @@ function checkstake {
     echo "Previous cycle from $prev_since. Started $prev_min_ago min ago"
     echo "Current cycle from $curr_since. Started $curr_min_ago min ago"
 
-    declare active_election=$(ftn runget active_election_id | grep "Result:" | tr -d '[]",' | awk '{ print substr($2,3) }')
+    declare active_election=$(ftn runget active_election_id | grep "Result:" | tr -d '[]",' | awk '{ print $2 }')
     echo "active election id: $active_election"
 
     declare -i code=0

@@ -14,16 +14,16 @@ declare -A _dcode_reason
 #    0x8 - Completing: Returning or reinvesting participant stakes because round is completed.
 #    0x9 - Completed: All stakes of the round have been returned or reinvested. At the next round rotation the round will be deleted from the DePool.
 
-_dcode_step["0x0"]="PrePooling"
-_dcode_step["0x1"]="Pooling"
-_dcode_step["0x2"]="WaitingValidatorRequest"
-_dcode_step["0x3"]="WaitingIfStakeAccepted"
-_dcode_step["0x4"]="WaitingValidationStart"
-_dcode_step["0x5"]="WaitingIfValidatorWinElections"
-_dcode_step["0x6"]="WaitingUnfreeze"
-_dcode_step["0x7"]="WaitingReward"
-_dcode_step["0x8"]="Completing"
-_dcode_step["0x9"]="Completed"
+_dcode_step["0"]="PrePooling"
+_dcode_step["1"]="Pooling"
+_dcode_step["2"]="WaitingValidatorRequest"
+_dcode_step["3"]="WaitingIfStakeAccepted"
+_dcode_step["4"]="WaitingValidationStart"
+_dcode_step["5"]="WaitingIfValidatorWinElections"
+_dcode_step["6"]="WaitingUnfreeze"
+_dcode_step["7"]="WaitingReward"
+_dcode_step["8"]="Completing"
+_dcode_step["9"]="Completed"
 
 
 #    Reason:
@@ -37,12 +37,12 @@ _dcode_step["0x9"]="Completed"
 #    0x7 - Validator is blamed during investigation phase.
 #    0x8 - Validator sent no request during election phase.
 
-_dcode_reason["0x0"]="Round is not completed yet."
-_dcode_reason["0x1"]="Pool was closed by owner."
-_dcode_reason["0x2"]="The round was one of the first two rounds after deployment."
-_dcode_reason["0x3"]="Validator stake is less than validatorAssurance."
-_dcode_reason["0x4"]="Stake is rejected by elector for some reason."
-_dcode_reason["0x5"]="DePool won elections."
-_dcode_reason["0x6"]="DePool has lost the elections."
-_dcode_reason["0x7"]="Validator is blamed."
-_dcode_reason["0x8"]="Validator sent no request during election phase."
+_dcode_reason["0"]="Round is not completed yet."
+_dcode_reason["1"]="Pool was closed by owner."
+_dcode_reason["2"]="The round was one of the first two rounds after deployment."
+_dcode_reason["3"]="Validator stake is less than validatorAssurance."
+_dcode_reason["4"]="Stake is rejected by elector for some reason."
+_dcode_reason["5"]="DePool won elections."
+_dcode_reason["6"]="DePool has lost the elections."
+_dcode_reason["7"]="Validator is blamed."
+_dcode_reason["8"]="Validator sent no request during election phase."
