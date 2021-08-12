@@ -83,7 +83,7 @@ function dpl_stake_withdraw {
     if [ -z "$2" ]; then
         echo "The last parameter is not specified. Please check 'ftn depool help stake'"
     else
-        if [ "$2" == "all" ]
+        if [ "$2" == "all" ]; then
             echo "Withdrawing $2 ordinary stake"
             tonos depool --addr $DEPOOL_ACC withdraw on --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
         else
