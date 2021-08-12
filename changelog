@@ -1,4 +1,4 @@
-ftn 0.2.4-test
+ftn 0.2.4
     * Aligned with tonos-cli output format with 0.3 and higher versions. Please note that tonos-cli output for versions 0.2 and lower are no longer supported.
     * Renamed output of 'mode' subcommand.
     * Supported 'depool participants' subcommand.

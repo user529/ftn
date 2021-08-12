@@ -8,7 +8,7 @@ ftn_base_list="@(checkrounds|accounts|depool|mode|help)"
 ftn_node_list="@(adnl|timediff|checkstake|checkconn)"
 msig_elector_list="@(electionlog|electionrun|extrastake|setstake|recover)"
 
-ftn_version="0.2.4-test"
+ftn_version="0.2.4"
 
 
 ##########
