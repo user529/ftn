@@ -1,3 +1,6 @@
+ftn 0.2.5
+    * Added a checks for FTN-variables if they are not defined.
+
 ftn 0.2.4
     * Aligned with tonos-cli output format with 0.3 and higher versions. Please note that tonos-cli output for versions 0.2 and lower are no longer supported.
     * Renamed output of 'mode' subcommand.

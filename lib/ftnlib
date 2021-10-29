@@ -8,7 +8,7 @@ ftn_base_list="@(checkrounds|accounts|depool|mode|help)"
 ftn_node_list="@(adnl|timediff|checkstake|checkconn)"
 msig_elector_list="@(electionlog|electionrun|extrastake|setstake|recover)"
 
-ftn_version="0.2.4"
+ftn_version="0.2.5"
 
 
 ##########
@@ -16,9 +16,9 @@ ftn_version="0.2.4"
 
 function get_account {
     if [ -z "$1" ]; then
-        account=$FTN_ACCOUNT
-    elif [ -r "$FTN_KEYS_DIR/$1.addr" ]; then
-        account=$(cat $FTN_KEYS_DIR/$1.addr)
+        account=${FTN_ACCOUNT:?}
+    elif [ -r "${FTN_KEYS_DIR:?}/$1.addr" ]; then
+        account=$(cat ${FTN_KEYS_DIR:?}/$1.addr)
     elif [[ $1 == *":"* ]]; then
         account=$1
     else
@@ -47,7 +47,7 @@ function get_mode {
 function tonos {
     date
     echo "ftnlib.tonos: $@"
-    cd $TONOS_CLI_DIR
+    cd ${TONOS_CLI_DIR:?}
     test "$TONOS_CFG_FILE" \
         && $TONOS_CLI_DIR/tonos-cli --config $TONOS_CFG_FILE $@ \
         || $TONOS_CLI_DIR/tonos-cli $@
@@ -76,7 +76,7 @@ function check_keyring {
             IsMatched=$result
             break
         fi
-    done < <(find $FTN_DB_DIR/db/keyring/ -cmin "-$Since" -type f -printf "%f\0")
+    done < <(find ${FTN_DB_DIR:?}/db/keyring/ -cmin "-${Since:?}" -type f -printf "%f\0")
 }
 
 
@@ -84,21 +84,21 @@ function check_keyring {
 # Commands for the ftn_base_list
 
 function help {
-    . $FTN_WRP/lib/ftnlibhelp
+    . ${FTN_WRP:?}/lib/ftnlibhelp
     test $2 && section=$2 || section="overview"
     echo "${_help[$section]}"
 }
 
 
 function accounts {
-    for alias in $(find $FTN_KEYS_DIR -name '*.addr' -printf "%f\n" | cut -d. -f1); do
+    for alias in $(find ${FTN_KEYS_DIR:?} -name '*.addr' -printf "%f\n" | cut -d. -f1); do
         echo "account: $(cat $FTN_KEYS_DIR/$alias.addr) (alias: $alias)"
     done
 }
 
 
 function depool {
-    . $FTN_WRP/lib/ftnlibdepool
+    . ${FTN_WRP:?}/lib/ftnlibdepool
     depool_list="@(events|info|participant|participants|tick|stake|replenish|getrounds|help)"
     test $2 &&
         case "$2" in
@@ -115,12 +115,12 @@ function mode {
 
 
 function checkrounds {
-    . $FTN_WRP/lib/ftnlibdepool
+    . ${FTN_WRP:?}/lib/ftnlibdepool
     result="$(dpl_getrounds)"
     declare -a rounds
     rounds=$(echo "$result" | jq -r '.rounds[]?.id' | sort)
     nano=$((10**9))
-    . $FTN_WRP/lib/ftnlibdcodes
+    . ${FTN_WRP:?}/lib/ftnlibdcodes
     for round in $rounds; do 
         reason=$(echo "$result" | jq -r '.rounds."'$round'".completionReason' | tr -d '[:punct:][:blank:]')
         step=$(echo "$result" | jq -r '.rounds."'$round'".step' | tr -d '[:punct:][:blank:]')
@@ -145,18 +145,18 @@ function checkrounds {
 # Commands for the tonos_list
 
 function getconfig {
-    tonos $@ 2>&1 | tee -a $FTN_LOG/$1.log
+    tonos $@ 2>&1 | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
 function config {
-    tonos $@ 2>&1 | tee -a $FTN_LOG/$1.log
+    tonos $@ 2>&1 | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
 function runget {
     elector_addr=$(ftn getconfig 1 | tail -1 | tr -d '" ' | awk -F: '{print "-1:"$2}')
-    tonos $1 $elector_addr $2 2>&1 | tee -a $FTN_LOG/$1.log
+    tonos $1 $elector_addr $2 2>&1 | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
@@ -167,7 +167,7 @@ function convert {
 
 function balance { 
     get_account $2
-    declare -r result=$(tonos account "$account" | tee -a $FTN_LOG/$1.log)
+    declare -r result=$(tonos account "$account" | tee -a ${FTN_LOG:?}/$1.log)
     declare -r address=$(echo "$result" | grep address | awk '{print $2}')
     declare -r balance=$(echo "$result" | grep balance | awk '{print $2/1000000000}')
     declare -r state=$(echo "$result" | grep acc_type | awk '{print $2}')
@@ -183,7 +183,7 @@ function balance {
 
 function transactions { 
     get_account $2
-    tonos2j run $account getTransactions {} --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json 2>&1 | tee -a $FTN_LOG/$1.log
+    tonos2j run $account getTransactions {} --abi ${MULSIG_CONTRACT_DIR:?}/SafeMultisigWallet.abi.json 2>&1 | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
@@ -196,13 +196,13 @@ function confirm {
             read -r -d '' PARAMS << EOD || true
             {"transactionId":"$trx"}
 EOD
-            tonos call $FTN_ACCOUNT confirmTransaction $PARAMS --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json --sign $FTN_KEYS_DIR/$2 2>&1 | tee -a $FTN_LOG/$1.log
+            tonos call ${FTN_ACCOUNT:?} confirmTransaction $PARAMS --abi ${MULSIG_CONTRACT_DIR:?}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR:?}/$2 2>&1 | tee -a ${FTN_LOG:?}/$1.log
         done
     else
         read -r -d '' PARAMS << EOD || true
         {"transactionId":"$3"}
 EOD
-        tonos call $FTN_ACCOUNT confirmTransaction $PARAMS --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json --sign $FTN_KEYS_DIR/$2 2>&1 | tee -a $FTN_LOG/$1.log
+        tonos call ${FTN_ACCOUNT:?} confirmTransaction $PARAMS --abi ${MULSIG_CONTRACT_DIR:?}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR:?}/$2 2>&1 | tee -a ${FTN_LOG:?}/$1.log
     fi
 }
 
@@ -219,8 +219,8 @@ function submit {
     read -r -d '' PARAMS << EOD || true
     {"dest":"$account","value":"$NANO","bounce":"$isBounce","allBalance":"false","payload":"$5"}
 EOD
-    if test -r $FTN_KEYS_DIR/$DEFAULT_KEY; then
-        tonos call $FTN_ACCOUNT submitTransaction $PARAMS --abi $MULSIG_CONTRACT_DIR/SafeMultisigWallet.abi.json --sign $FTN_KEYS_DIR/$DEFAULT_KEY 2>&1 | tee -a $FTN_LOG/$1.log 
+    if test -r ${FTN_KEYS_DIR:?}/${DEFAULT_KEY:?}; then
+        tonos call ${FTN_ACCOUNT:?} submitTransaction $PARAMS --abi ${MULSIG_CONTRACT_DIR:?}/SafeMultisigWallet.abi.json --sign ${FTN_KEYS_DIR:?}/$DEFAULT_KEY 2>&1 | tee -a ${FTN_LOG:?}/$1.log 
     else
         echo "Error: signature key file not found."
         exit 1
@@ -229,7 +229,7 @@ EOD
 
 
 function exec {
-    tonos "${@:2}" 2>&1 | tee -a $FTN_LOG/$1.log
+    tonos "${@:2}" 2>&1 | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
@@ -241,19 +241,19 @@ function electionlog {
         lines=14
     else
         if [ "$2" == "full" ]; then
-            tail -n 30 "${FTN_LOG}/election.log"
+            tail -n 30 "${FTN_LOG:?}/election.log"
             exit 0
         else
             lines=$2
         fi
     fi
-    tail -n $lines "${FTN_LOG}/election.log" | grep "INFO:"
+    tail -n $lines "${FTN_LOG:?}/election.log" | grep "INFO:"
 }
 
 
 function electionrun {
     if [ -z $2 ]; then
-        STAKE=$(cat "${FTN_KEYS_DIR}/elections/stake" 2>/dev/null || STAKE='')
+        STAKE=$(cat "${FTN_KEYS_DIR:?}/elections/stake" 2>/dev/null || STAKE='')
     else
         STAKE=$2
     fi
@@ -263,17 +263,17 @@ function electionrun {
         exit 0
     fi
 
-    if [ "$FTN_AUTO_BACKUP_KEYS" == "Y" ]; then
+    if [ "${FTN_AUTO_BACKUP_KEYS:?}" == "Y" ]; then
         #Backup old keys before sending a new stake
-        gzip -rc "${FTN_KEYS_DIR}" > "$FTN_BACKUP_DIR/elections.$(date +%Y.%m.%d_%H-%M).gz"
-        gzip -rc "${FTN_DB_DIR}/db/keyring/" > "$FTN_BACKUP_DIR/keyring.$(date +%Y.%m.%d_%H-%M).gz"
+        gzip -rc "${FTN_KEYS_DIR:?}" > "${FTN_BACKUP_DIR:?}/elections.$(date +%Y.%m.%d_%H-%M).gz"
+        gzip -rc "${FTN_DB_DIR:?}/db/keyring/" > "${FTN_BACKUP_DIR:?}/keyring.$(date +%Y.%m.%d_%H-%M).gz"
     fi
 
     #truncate -s 0 "${FTN_LOG}/election.log"
-    cd "${FTN_DIR}/scripts"
-    ./validator_msig.sh $STAKE | tee -a "$FTN_LOG/election.log" 2>&1
+    cd "${FTN_DIR:?}/scripts"
+    ./validator_msig.sh $STAKE | tee -a "${FTN_LOG:?}/election.log" 2>&1
     cd "${OLDPWD}"
-    tail -n 14 "${FTN_LOG}/election.log"
+    tail -n 14 "${FTN_LOG:?}/election.log"
 }
 
 
@@ -282,9 +282,9 @@ function extrastake {
         echo "Amount of extrastake is not given."
         exit 1
     fi
-    elector_addr=$(cat $FTN_KEYS_DIR/elections/elector-addr-base64)
+    elector_addr=$(cat ${FTN_KEYS_DIR:?}/elections/elector-addr-base64)
     EXT_STAKE=$2
-    payload="$(base64 --wrap=0 $FTN_KEYS_DIR/elections/validator-query.boc)"
+    payload="$(base64 --wrap=0 ${FTN_KEYS_DIR:?}/elections/validator-query.boc)"
 
     # input parameters for 'submit' function
     # $1 = submit    # Must be equal to the function name
@@ -339,14 +339,14 @@ function setstake {
         echo "The stake less than the minimal. Set 0 stake"
         stake=0
     fi
-    echo $stake > "${FTN_KEYS_DIR}/elections/stake"
+    echo $stake > "${FTN_KEYS_DIR:?}/elections/stake"
     echo "${stake} set as stake."
 }
 
 
 function recover { 
-    cd "${FTN_DIR}/scripts"
-    . "${FTN_DIR}/scripts/env.sh"
+    cd "${FTN_DIR:?}/scripts"
+    . "${FTN_DIR:?}/scripts/env.sh"
 
     if [ -z "$2" ]; then
         SEND_ATTEMPTS=1
@@ -355,34 +355,34 @@ function recover {
     fi
     #set -x
 
-    elector_addr=$(cat "${FTN_KEYS_DIR}/elections/elector-addr-base64")
+    elector_addr=$(cat "${FTN_KEYS_DIR:?}/elections/elector-addr-base64")
 
-    "${TON_BUILD_DIR}/lite-client/lite-client" \
-        -p "${FTN_KEYS_DIR}/liteserver.pub" -a 127.0.0.1:3031 \
-        -rc "runmethod ${elector_addr} compute_returned_stake 0x$(echo "${FTN_ACCOUNT}" | cut -d ':' -f 2)" \
-        -rc "quit" &>"${FTN_KEYS_DIR}/elections/recover-state"
+    "${TON_BUILD_DIR:?}/lite-client/lite-client" \
+        -p "${FTN_KEYS_DIR:?}/liteserver.pub" -a 127.0.0.1:3031 \
+        -rc "runmethod ${elector_addr} compute_returned_stake 0x$(echo "${FTN_ACCOUNT:?}" | cut -d ':' -f 2)" \
+        -rc "quit" &>"${FTN_KEYS_DIR:?}/elections/recover-state"
 
     awk '{
         if ($1 == "result:") {
             print $3
         }
-    }' "${FTN_KEYS_DIR}/elections/recover-state" >"${FTN_KEYS_DIR}/elections/recover-amount"
+    }' "${FTN_KEYS_DIR:?}/elections/recover-state" >"${FTN_KEYS_DIR:?}/elections/recover-amount"
 
-    recover_amount=$(cat "${FTN_KEYS_DIR}/elections/recover-amount")
+    recover_amount=$(cat "${FTN_KEYS_DIR:?}/elections/recover-amount")
     echo "INFO: recover_amount = ${recover_amount} nanotokens"
 
     if [ "$recover_amount" != "0" ]; then
-        "${TON_BUILD_DIR}/crypto/fift" -I "${TON_SRC_DIR}/crypto/fift/lib:${TON_SRC_DIR}/crypto/smartcont" -s recover-stake.fif "${FTN_KEYS_DIR}/elections/recover-query.boc"
+        "${TON_BUILD_DIR:?}/crypto/fift" -I "${TON_SRC_DIR:?}/crypto/fift/lib:${TON_SRC_DIR:?}/crypto/smartcont" -s recover-stake.fif "${FTN_KEYS_DIR:?}/elections/recover-query.boc"
 
-        recover_query_boc=$(base64 --wrap=0 "${FTN_KEYS_DIR}/elections/recover-query.boc")
+        recover_query_boc=$(base64 --wrap=0 "${FTN_KEYS_DIR:?}/elections/recover-query.boc")
 
-        for i in $(seq ${SEND_ATTEMPTS}); do
+        for i in $(seq ${SEND_ATTEMPTS:?}); do
             echo "INFO: tonos-cli submitTransaction attempt #${i}..."
             set -x
-            if ! "${UTILS_DIR}/tonos-cli" call "${FTN_ACCOUNT}" submitTransaction \
+            if ! "${UTILS_DIR:?}/tonos-cli" call "${FTN_ACCOUNT:?}" submitTransaction \
                 "{\"dest\":\"${elector_addr}\",\"value\":\"1000000000\",\"bounce\":true,\"allBalance\":false,\"payload\":\"${recover_query_boc}\"}" \
-                --abi "${CONFIGS_DIR}/SafeMultisigWallet.abi.json" \
-                --sign "${FTN_KEYS_DIR}/msig.keys.json"; then
+                --abi "${CONFIGS_DIR:?}/SafeMultisigWallet.abi.json" \
+                --sign "${FTN_KEYS_DIR:?}/msig.keys.json"; then
                 echo "INFO: tonos-cli submitTransaction attempt #${i}... FAIL"
             else
                 echo "INFO: tonos-cli submitTransaction attempt #${i}... PASS"
@@ -403,13 +403,13 @@ function recover {
 # Commands for the ftn_node_list
 
 function timediff {
-    cd "$FTN_DIR/scripts"
+    cd "${FTN_DIR:?}/scripts"
     . ./check_node_sync_status.sh | grep "TIME_DIFF" | awk '{print $4}' 2>&1
 }
 
 
 function adnl {
-    adnlfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-adnl-key"
+    adnlfile="${FTN_KEYS_DIR:?}/elections/$(hostname -s)-election-adnl-key"
     #keyfile="$FTN_KEYS_DIR/elections/$(hostname -s)-election-key"
     if test -r $adnlfile; then
         adnl=$(cat "$adnlfile" | grep "created new key")
@@ -477,10 +477,10 @@ function checkstake {
 
 function checkconn {
     declare -i code=0
-    declare -r PARMS="-t 5 -a 127.0.0.1:3030 -k $FTN_KEYS_DIR/client -p $FTN_KEYS_DIR/server.pub"
+    declare -r PARMS="-t 5 -a 127.0.0.1:3030 -k ${FTN_KEYS_DIR:?}/client -p ${FTN_KEYS_DIR:?}/server.pub"
     declare -r CMD="-c quit"
-    date | tee -a $FTN_LOG/$1.log
-    declare -r conn=$($FTN_DIR/ton/build/validator-engine-console/validator-engine-console $PARMS $CMD | tee -a $FTN_LOG/$1.log)
+    date | tee -a ${FTN_LOG:?}/$1.log
+    declare -r conn=$(${FTN_DIR:?}/ton/build/validator-engine-console/validator-engine-console $PARMS $CMD | tee -a ${FTN_LOG:?}/$1.log)
     declare -r status=$(echo -e "$conn" | tail -1 | grep conn | awk '{print $2}')
     echo "$conn" 
     test $status = "failed" && code=1

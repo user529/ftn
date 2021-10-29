@@ -1,17 +1,17 @@
 function dpl_help {
-    . $FTN_WRP/lib/ftnlibhelp
+    . ${FTN_WRP:?}/lib/ftnlibhelp
     test $2 && section="dpl_$2" || section="depool"
     echo "${_help[$section]}"
 }
 
 
 function dpl_info {
-    tonos2j run $DEPOOL_ACC getDePoolInfo {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+    tonos2j run ${DEPOOL_ACC:?} getDePoolInfo {} --abi ${DEPOOL_CONTRACT_DIR:?}/DePool.abi.json | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
 function dpl_getrounds {
-    tonos2j run $DEPOOL_ACC getRounds {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+    tonos2j run ${DEPOOL_ACC:?} getRounds {} --abi ${DEPOOL_CONTRACT_DIR:?}/DePool.abi.json | tee -a ${FTN_LOG:?}/$1.log
 }
 
 function dpl_participant {
@@ -19,11 +19,11 @@ function dpl_participant {
     read -r -d '' PARAMS << EOD || true
     {"addr":"$account"}
 EOD
-    tonos2j run $DEPOOL_ACC getParticipantInfo $PARAMS --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+    tonos2j run ${DEPOOL_ACC:?} getParticipantInfo $PARAMS --abi ${DEPOOL_CONTRACT_DIR:?}/DePool.abi.json | tee -a ${FTN_LOG:?}/$1.log
 }
 
 function dpl_participants {
-    tonos2j run $DEPOOL_ACC getParticipants {} --abi $DEPOOL_CONTRACT_DIR/DePool.abi.json | tee -a $FTN_LOG/$1.log
+    tonos2j run ${DEPOOL_ACC:?} getParticipants {} --abi ${DEPOOL_CONTRACT_DIR:?}/DePool.abi.json | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
@@ -36,17 +36,17 @@ function dpl_events {
         utime=$(getconfig "getconfig" "34" | grep utime_since | awk '{print $2}' | tr -d ',')
         since_params="--since $utime"
     fi
-    tonos depool --addr $DEPOOL_ACC events $since_params | tee -a $FTN_LOG/$1.log
+    tonos depool --addr ${DEPOOL_ACC:?} events $since_params | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
 function dpl_tick {
-    tonos depool --addr $DEPOOL_ACC ticktock --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+    tonos depool --addr ${DEPOOL_ACC:?} ticktock --wallet ${FTN_ACCOUNT:?} --sign ${FTN_KEYS_DIR:?}/${DEFAULT_KEY:?} | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
 function dpl_replenish {
-    tonos depool --addr $DEPOOL_ACC replenish --value $2 --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+    tonos depool --addr ${DEPOOL_ACC:?} replenish --value $2 --wallet ${FTN_ACCOUNT:?} --sign ${FTN_KEYS_DIR:?}/${DEFAULT_KEY:?} | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
@@ -69,13 +69,13 @@ function dpl_stake {
 
 function dpl_stake_ordinary {
     echo "Making ordinary stake $2"
-    tonos depool --addr $DEPOOL_ACC stake ordinary --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+    tonos depool --addr ${DEPOOL_ACC:?} stake ordinary --wallet ${FTN_ACCOUNT:?} --value $2 --sign ${FTN_KEYS_DIR:?}/${DEFAULT_KEY:?} | tee -a ${FTN_LOG:?}/$1.log
 }
 
 
 function dpl_stake_remove {
     echo "Removing ordinary stake $2"
-    tonos depool --addr $DEPOOL_ACC stake remove --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+    tonos depool --addr ${DEPOOL_ACC:?} stake remove --wallet ${FTN_ACCOUNT:?} --value $2 --sign ${FTN_KEYS_DIR:?}/${DEFAULT_KEY:?} | tee -a ${FTN_LOG:?}/$1.log
 }
 
 function dpl_stake_withdraw {
@@ -85,10 +85,10 @@ function dpl_stake_withdraw {
     else
         if [ "$2" == "all" ]; then
             echo "Withdrawing $2 ordinary stake"
-            tonos depool --addr $DEPOOL_ACC withdraw on --wallet $FTN_ACCOUNT --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+            tonos depool --addr ${DEPOOL_ACC:?} withdraw on --wallet ${FTN_ACCOUNT:?} --sign ${FTN_KEYS_DIR:?}/${DEFAULT_KEY:?} | tee -a ${FTN_LOG:?}/$1.log
         else
             echo "Withdrawing part of ordinary stake $2"
-            tonos depool --addr $DEPOOL_ACC stake withdrawPart --wallet $FTN_ACCOUNT --value $2 --sign $FTN_KEYS_DIR/$DEFAULT_KEY | tee -a $FTN_LOG/$1.log
+            tonos depool --addr ${DEPOOL_ACC:?} stake withdrawPart --wallet ${FTN_ACCOUNT:?} --value $2 --sign ${FTN_KEYS_DIR:?}/${DEFAULT_KEY:?} | tee -a ${FTN_LOG:?}/$1.log
         fi
     fi
 }

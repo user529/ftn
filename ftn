@@ -2,7 +2,7 @@
 
 # A wrapper for tonos-cli
 . ~/ftn.conf
-. $FTN_WRP/lib/ftnlib
+. ${FTN_WRP:?}/lib/ftnlib
 
 test $1 &&
     get_mode
